@@ -5,60 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SME Map Collector</title>
     
-    <!-- CSS Dependencies -->
+    <!-- Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
-        #map { height: 250px; width: 100%; border-radius: 1rem; z-index: 10; }
+        @import url('https://fonts.googleapis.com/css2?family=Pyidaungsu:wght@400;700&display=swap');
+        
+        :root { font-family: 'Inter', 'Pyidaungsu', sans-serif; }
+        #map { height: 220px; width: 100%; border-radius: 1rem; z-index: 10; }
         .loader { border-top-color: #ffffff; animation: spinner 1s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         input, select, textarea { font-size: 16px !important; }
-        .leaflet-container { font-family: inherit; }
+        .hidden-el { display: none; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-10 font-sans touch-manipulation">
+<body class="bg-slate-50 min-h-screen pb-20 touch-manipulation">
 
-    <header class="bg-indigo-900 text-white p-5 shadow-lg sticky top-0 z-[1000]">
+    <header class="bg-indigo-900 text-white p-4 shadow-lg sticky top-0 z-[1000]">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <h1 class="text-lg font-bold flex items-center gap-2">
-                <i data-lucide="map"></i> Ward Map Engine
+                <i data-lucide="map"></i> <span data-lang="appTitle">Ward Map Engine</span>
             </h1>
-            <div id="status-indicator" class="flex items-center gap-2">
-                <div id="status-dot" class="w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
+            <div class="flex items-center gap-3">
+                <select id="lang-switch" class="bg-indigo-800 text-xs border-none rounded px-2 py-1 outline-none">
+                    <option value="en">English</option>
+                    <option value="mm">မြန်မာ</option>
+                </select>
+                <div id="status-dot" class="w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></div>
             </div>
         </div>
     </header>
 
     <main class="max-w-md mx-auto p-4 space-y-4">
         
-        <!-- API Setup -->
-        <details class="bg-white rounded-xl shadow-sm border border-slate-200 p-3">
-            <summary class="text-xs font-bold text-slate-400 cursor-pointer uppercase select-none">Config Setup</summary>
-            <input type="text" id="script-url" placeholder="Paste Web App URL here..." 
-                class="w-full mt-2 p-3 text-sm border rounded-lg bg-slate-50 outline-none">
-        </details>
-
         <!-- Map Section -->
         <section class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-indigo-50/30">
-                <h2 class="text-[10px] font-black text-indigo-900 uppercase tracking-widest">Location Selector</h2>
-                <span class="text-[9px] text-slate-500 italic">Tap on map to manually pin</span>
-            </div>
             <div id="map"></div>
             <div class="p-3 grid grid-cols-2 gap-2 bg-slate-50">
-                <div class="bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
-                    <span class="text-[9px] font-bold text-slate-400 block uppercase">Latitude</span>
-                    <input type="number" step="any" id="lat" class="bg-transparent text-xs font-mono outline-none w-full" readonly>
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                    <span class="text-[9px] font-bold text-slate-400 block uppercase">Lat</span>
+                    <input type="number" id="lat" class="bg-transparent text-xs font-mono outline-none w-full" readonly>
                 </div>
-                <div class="bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
-                    <span class="text-[9px] font-bold text-slate-400 block uppercase">Longitude</span>
-                    <input type="number" step="any" id="long" class="bg-transparent text-xs font-mono outline-none w-full" readonly>
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                    <span class="text-[9px] font-bold text-slate-400 block uppercase">Long</span>
+                    <input type="number" id="long" class="bg-transparent text-xs font-mono outline-none w-full" readonly>
                 </div>
             </div>
-            <button type="button" onclick="refreshGPS()" class="w-full py-3 text-indigo-700 text-[11px] font-bold uppercase flex items-center justify-center gap-2 hover:bg-indigo-50">
-                <i data-lucide="locate-fixed" class="w-4 h-4"></i> Sync My GPS
+            <button type="button" onclick="refreshGPS()" class="w-full py-3 text-indigo-700 text-[11px] font-bold uppercase flex items-center justify-center gap-2 hover:bg-indigo-50 border-t">
+                <i data-lucide="locate-fixed" class="w-4 h-4"></i> <span data-lang="syncGps">Sync My GPS</span>
             </button>
         </section>
 
@@ -70,87 +66,222 @@
                 
                 <div class="space-y-3">
                     <div>
-                        <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Shop Name</label>
-                        <input type="text" name="name" required placeholder="Shop Name" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500">
+                        <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelName">Shop Name</label>
+                        <input type="text" name="name" id="shop-name-input" required placeholder="..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
+                    <!-- Category & Subcategory Selection -->
+                    <div class="space-y-3">
                         <div>
-                            <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Category</label>
-                            <select name="category" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
-                                <option value="Home Shop">Home Shop</option>
-                                <option value="Hair Salon">Hair Salon</option>
-                                <option value="Tea Shop">Tea Shop</option>
-                                <option value="Pharmacy">Pharmacy</option>
-                                <option value="Other">Other</option>
+                            <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelCategory">Main Category</label>
+                            <select id="main-category-select" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
+                                <!-- Populated by JS -->
                             </select>
+                            <input type="text" id="other-main-input" placeholder="Enter main category..." class="hidden-el mt-2 w-full p-3 bg-white border border-indigo-300 rounded-xl outline-none text-sm focus:border-indigo-500">
+                            <input type="hidden" name="category" id="final-category">
                         </div>
-                        <div>
-                            <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Scale</label>
-                            <select name="scale" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
-                                <option value="Micro">Micro</option>
-                                <option value="Small">Small</option>
-                                <option value="Medium">Medium</option>
+
+                        <div id="sub-category-wrapper">
+                            <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelSubCategory">Sub Category</label>
+                            <select id="sub-category-select" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
+                                <!-- Populated by JS -->
                             </select>
+                            <input type="text" id="other-sub-input" placeholder="Enter sub category..." class="hidden-el mt-2 w-full p-3 bg-white border border-indigo-300 rounded-xl outline-none text-sm focus:border-indigo-500">
+                            <input type="hidden" name="subCategory" id="final-subcategory">
                         </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelScale">Scale</label>
+                        <select name="scale" id="scale-select" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
+                            <!-- Populated by JS -->
+                        </select>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 p-3 bg-indigo-50/50 rounded-xl">
+                <div class="grid grid-cols-2 gap-3 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
                     <div>
-                        <label class="text-[10px] font-bold text-indigo-700 uppercase block mb-1">Digital Pay?</label>
-                        <select name="digitalPayment" class="w-full p-2 text-xs rounded border bg-white font-bold">
-                            <option value="Yes">KPay/CB</option>
-                            <option value="No">Cash Only</option>
+                        <label class="text-[10px] font-bold text-indigo-700 uppercase block mb-1" data-lang="labelDigital">Digital Pay?</label>
+                        <select name="digitalPayment" id="digital-select" class="w-full p-2 text-xs rounded border bg-white font-bold">
+                            <!-- Populated by JS -->
                         </select>
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-indigo-700 uppercase block mb-1">Traffic</label>
-                        <select name="traffic" class="w-full p-2 text-xs rounded border bg-white font-bold">
-                            <option value="Low">Low</option>
-                            <option value="Medium" selected>Medium</option>
-                            <option value="High">High</option>
+                        <label class="text-[10px] font-bold text-indigo-700 uppercase block mb-1" data-lang="labelTraffic">Traffic</label>
+                        <select name="traffic" id="traffic-select" class="w-full p-2 text-xs rounded border bg-white font-bold">
+                            <!-- Populated by JS -->
                         </select>
                     </div>
                 </div>
 
                 <div>
-                    <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Remarks</label>
-                    <textarea name="remark" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[60px] text-sm" placeholder="Additional notes..."></textarea>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelRemark">Remarks</label>
+                    <textarea name="remark" id="remark-input" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[60px] text-sm"></textarea>
                 </div>
 
                 <button type="submit" id="submit-btn" 
                     class="w-full bg-indigo-900 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
-                    <i data-lucide="save" class="w-5 h-5"></i> <span>Save SME Record</span>
+                    <i data-lucide="save" class="w-5 h-5"></i> <span data-lang="btnSave">Save Record</span>
                 </button>
             </form>
         </section>
 
-        <div id="message-box" class="hidden p-4 rounded-xl text-center text-sm font-medium"></div>
+        <div id="message-box" class="hidden-el p-4 rounded-xl text-center text-sm font-medium"></div>
     </main>
 
-    <!-- JS Dependencies -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        lucide.createIcons();
-        
-        // --- Map Initialization ---
-        let map = L.map('map').setView([16.8409, 96.1735], 13); // Default Yangon
-        let marker;
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwWtQRWZvhiADEKhmDrKocb3LT2qK7opcZDkBpibLsTh6m5huEX6bWrk3gCB4khtRcDjA/exec";
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
+        // Category data based on Myanmar Yellow Pages classifications
+        const categoryData = {
+            en: {
+                "Business Services": ["Advertising Agency", "Accounting & Audit", "Business Consultants", "Employment Agency", "Legal Consultants", "Real Estate Agents", "Trading Companies", "Logistics & Courier", "Translation Service", "Other"],
+                "Food & Beverage": ["Restaurants", "Rice & Curry Shop", "Noodle Shop", "Tea Shop", "Bakery & Confectionery", "Purified Water Supply", "Cafe", "Other"],
+                "Jewelry & Value": ["Gold Shop", "Gold Smith (Nawali)", "Gemstone & Jewelry", "Pawnbrokers", "Other"],
+                "Electronics & IT": ["Mobile Phone Shop", "Mobile Accessories", "Computer Shop", "Electronic Repairs", "Software Service", "Other"],
+                "Building & Construction": ["Construction Companies", "Interior Decorator", "Building Materials", "Electricians", "Paints & Glass", "Other"],
+                "Health & Beauty": ["Clinics", "Pharmacies", "Beauty Salon", "Spa & Wellness", "Other"],
+                "Automotive": ["Car Rental", "Auto Workshop", "Spare Parts", "Tyre Services", "Other"],
+                "Travel & Tourism": ["Travel Agency", "Hotels & Guesthouses", "Air Ticket Service", "Bus Express", "Other"],
+                "Other": ["Other"]
+            },
+            mm: {
+                "စီးပွားရေးဝန်ဆောင်မှု": ["ကြော်ငြာအေဂျင်စီ", "စာရင်းကိုင်နှင့်စာရင်းစစ်", "စီးပွားရေးအတိုင်ပင်ခံ", "အလုပ်အကိုင်ရှာဖွေရေး", "ဥပဒေအတိုင်ပင်ခံ", "အိမ်ခြံမြေကိုယ်စားလှယ်", "ကုန်သွယ်မှုကုမ္ပဏီ", "ပို့ဆောင်ရေးနှင့်ချောပို့", "ဘာသာပြန်လုပ်ငန်း", "အခြား"],
+                "အစားအသောက်": ["စားသောက်ဆိုင်", "ထမင်းနှင့်ဟင်းဆိုင်", "မုန့်တီ/ခေါက်ဆွဲဆိုင်", "လက်ဖက်ရည်ဆိုင်", "မုန့်တိုက်", "ရေသန့်လုပ်ငန်း", "ကော်ဖီဆိုင်", "အခြား"],
+                "ရွှေနှင့်ရတနာ": ["ရွှေဆိုင်", "ရွှေနဝလီဆိုင်", "ကျောက်မျက်ရတနာ", "အပေါင်ဆိုင်", "အခြား"],
+                "လျှပ်စစ်နှင့်နည်းပညာ": ["ဖုန်းအရောင်းဆိုင်", "ဖုန်းအပိုပစ္စည်း", "ကွန်ပျူတာဆိုင်", "လျှပ်စစ်ပြင်ဆိုင်", "ဆော့ဖ်ဝဲလ်ဝန်ဆောင်မှု", "အခြား"],
+                "ဆောက်လုပ်ရေး": ["ဆောက်လုပ်ရေးကုမ္ပဏီ", "အတွင်းပိုင်းအလှဆင်", "ဆောက်လုပ်ရေးပစ္စည်း", "လျှပ်စစ်ကန်ထရိုက်တာ", "ဆေးနှင့်မှန်လုပ်ငန်း", "အခြား"],
+                "ကျန်းမာရေးနှင့်အလှအပ": ["ဆေးခန်း", "ဆေးဆိုင်", "အလှပြင်ဆိုင်", "စပါးနှင့်ကျန်းမာရေး", "အခြား"],
+                "မော်တော်ယာဉ်": ["ကားအငှားလုပ်ငန်း", "ဝပ်ရှော့", "အပိုပစ္စည်းအရောင်းဆိုင်", "တာယာဝန်ဆောင်မှု", "အခြား"],
+                "ခရီးသွားလာရေး": ["ခရီးသွားအေဂျင်စီ", "ဟိုတယ်နှင့်တည်းခိုခန်း", "လေယာဉ်လက်မှတ်အရောင်း", "အဝေးပြေးကားလက်မှတ်", "အခြား"],
+                "အခြား": ["အခြား"]
+            }
+        };
+
+        const translations = {
+            en: {
+                appTitle: "Ward Map Engine",
+                syncGps: "Sync My GPS",
+                labelName: "Shop Name",
+                labelCategory: "Main Category",
+                labelSubCategory: "Sub Category",
+                labelScale: "Scale",
+                labelDigital: "Digital Pay?",
+                labelTraffic: "Traffic",
+                labelRemark: "Remarks",
+                btnSave: "Save Record",
+                msgSuccess: "Data Saved Successfully!",
+                msgError: "Error: Could not save data",
+                scales: ["Micro (1-2 Staff)", "Small (3-5 Staff)", "Medium (5+ Staff)"],
+                digital: ["Yes (KPay/Wave/AYAPay/MMQR etc)", "No (Cash Only)"],
+                traffic: ["Low", "Medium", "High"]
+            },
+            mm: {
+                appTitle: "ရပ်ကွက်ဒေတာအင်ဂျင်",
+                syncGps: "တည်နေရာရယူရန်",
+                labelName: "ဆိုင်အမည်",
+                labelCategory: "အဓိကအမျိုးအစား",
+                labelSubCategory: "အသေးစိတ်အမျိုးအစား",
+                labelScale: "လုပ်ငန်းပမာဏ",
+                labelDigital: "ဒစ်ဂျစ်တယ်ပေးချေမှု",
+                labelTraffic: "လူစည်ကားမှု",
+                labelRemark: "မှတ်ချက်",
+                btnSave: "ဒေတာသိမ်းဆည်းမည်",
+                msgSuccess: "ဒေတာသိမ်းဆည်းမှု အောင်မြင်ပါသည်။",
+                msgError: "အမှားအယွင်းရှိနေပါသည်။",
+                scales: ["အသေးစား (၁-၂ ဦး)", "အလတ်စား (၃-၅ ဦး)", "အကြီးစား (၅ ဦးနှင့်အထက်)"],
+                digital: ["ရှိသည် (KPay/Wave/CB)", "မရှိပါ (ငွေသားသီးသန့်)"],
+                traffic: ["နည်းပါး", "အလယ်အလတ်", "စည်ကား"],
+            }
+        };
+
+        let currentLang = localStorage.getItem('app_lang') || 'en';
+
+        function updateUI() {
+            const t = translations[currentLang];
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                const key = el.getAttribute('data-lang');
+                el.innerText = t[key];
+            });
+
+            // Populate Main Category
+            const mainCats = Object.keys(categoryData[currentLang]);
+            const mainSelect = document.getElementById('main-category-select');
+            const prevMain = mainSelect.value;
+            mainSelect.innerHTML = mainCats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+            if(prevMain && mainCats.includes(prevMain)) mainSelect.value = prevMain;
+
+            updateSubCategories();
+            updateSelect('scale-select', t.scales);
+            updateSelect('digital-select', t.digital);
+            updateSelect('traffic-select', t.traffic);
+            
+            lucide.createIcons();
+        }
+
+        function updateSubCategories() {
+            const mainCat = document.getElementById('main-category-select').value;
+            const subSelect = document.getElementById('sub-category-select');
+            const subWrapper = document.getElementById('sub-category-wrapper');
+            
+            const subs = categoryData[currentLang][mainCat] || [];
+            
+            if (subs.length > 0) {
+                subWrapper.classList.remove('hidden-el');
+                subSelect.innerHTML = subs.map(s => `<option value="${s}">${s}</option>`).join('');
+            } else {
+                subWrapper.classList.add('hidden-el');
+            }
+
+            checkOtherVisibility();
+        }
+
+        function checkOtherVisibility() {
+            const mainSelect = document.getElementById('main-category-select');
+            const subSelect = document.getElementById('sub-category-select');
+            const mainOther = document.getElementById('other-main-input');
+            const subOther = document.getElementById('other-sub-input');
+
+            if (mainSelect.value === "Other" || mainSelect.value === "အခြား") {
+                mainOther.classList.remove('hidden-el');
+            } else {
+                mainOther.classList.add('hidden-el');
+            }
+
+            if (subSelect.value === "Other" || subSelect.value === "အခြား") {
+                subOther.classList.remove('hidden-el');
+            } else {
+                subOther.classList.add('hidden-el');
+            }
+        }
+
+        function updateSelect(id, options) {
+            const select = document.getElementById(id);
+            const currentVal = select.value;
+            select.innerHTML = options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+            if (currentVal) select.value = currentVal;
+        }
+
+        document.getElementById('main-category-select').addEventListener('change', updateSubCategories);
+        document.getElementById('sub-category-select').addEventListener('change', checkOtherVisibility);
+
+        document.getElementById('lang-switch').addEventListener('change', (e) => {
+            currentLang = e.target.value;
+            localStorage.setItem('app_lang', currentLang);
+            updateUI();
+        });
+
+        // Map Setup
+        let map = L.map('map').setView([16.8409, 96.1735], 13);
+        let marker;
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
         function updateMarker(lat, lng, center = false) {
-            if (marker) {
-                marker.setLatLng([lat, lng]);
-            } else {
+            if (marker) marker.setLatLng([lat, lng]);
+            else {
                 marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-                marker.on('dragend', function(e) {
-                    const pos = marker.getLatLng();
-                    setCoords(pos.lat, pos.lng);
-                });
+                marker.on('dragend', () => setCoords(marker.getLatLng().lat, marker.getLatLng().lng));
             }
             if (center) map.setView([lat, lng], 17);
             setCoords(lat, lng);
@@ -165,70 +296,58 @@
             document.getElementById('form-long').value = lngVal;
         }
 
-        // Click on map to place marker
-        map.on('click', function(e) {
-            updateMarker(e.latlng.lat, e.latlng.lng);
-        });
+        map.on('click', (e) => updateMarker(e.latlng.lat, e.latlng.lng));
 
-        // GPS Sync
         function refreshGPS() {
-            if (!navigator.geolocation) return alert("GPS Not Supported");
-            
-            navigator.geolocation.getCurrentPosition(pos => {
-                updateMarker(pos.coords.latitude, pos.coords.longitude, true);
-            }, err => {
-                alert("GPS Error: " + err.message);
-            }, { enableHighAccuracy: true });
+            navigator.geolocation.getCurrentPosition(
+                pos => updateMarker(pos.coords.latitude, pos.coords.longitude, true),
+                null, { enableHighAccuracy: true }
+            );
         }
 
-        // --- Data Submission Logic ---
+        // Submission Logic
         const form = document.getElementById('data-form');
-        const scriptInput = document.getElementById('script-url');
-        const messageBox = document.getElementById('message-box');
-        const statusDot = document.getElementById('status-dot');
-
-        scriptInput.value = localStorage.getItem('gs_url_map_v1') || '';
-        if(scriptInput.value) statusDot.className = "w-3 h-3 bg-emerald-500 rounded-full border-2 border-white";
-
-        scriptInput.addEventListener('change', () => {
-            localStorage.setItem('gs_url_map_v1', scriptInput.value);
-            statusDot.className = scriptInput.value ? "w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" : "w-3 h-3 bg-red-500 rounded-full border-2 border-white";
-        });
-
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const url = scriptInput.value;
-            if (!url) return alert("Google Script URL ကို Config တွင် အရင်ထည့်ပါ။");
-            if (!document.getElementById('form-lat').value) return alert("မြေပုံပေါ်တွင် တည်နေရာ အရင်ရွေးချယ်ပါ။");
+            
+            const mainSelect = document.getElementById('main-category-select');
+            const subSelect = document.getElementById('sub-category-select');
+            const mainOther = document.getElementById('other-main-input');
+            const subOther = document.getElementById('other-sub-input');
+
+            document.getElementById('final-category').value = (mainSelect.value === "Other" || mainSelect.value === "အခြား") ? mainOther.value : mainSelect.value;
+            document.getElementById('final-subcategory').value = (subSelect.value === "Other" || subSelect.value === "အခြား") ? subOther.value : subSelect.value;
 
             const btn = document.getElementById('submit-btn');
-            const originalContent = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = `<div class="loader w-5 h-5 border-2 rounded-full border-white"></div>`;
+            btn.innerHTML = `<div class="loader w-5 h-5 border-2 rounded-full"></div>`;
 
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
             data.timestamp = new Date().toLocaleString();
 
-            const finalUrl = `${url}?${new URLSearchParams(data).toString()}`;
-            
             try {
-                await fetch(finalUrl, { method: 'GET', mode: 'no-cors' });
-                messageBox.textContent = "Data သိမ်းဆည်းပြီးပါပြီ။";
-                messageBox.className = "p-4 rounded-xl text-center text-sm font-medium bg-emerald-100 text-emerald-700 block shadow-inner";
+                await fetch(`${WEB_APP_URL}?${new URLSearchParams(data).toString()}`, { method: 'GET', mode: 'no-cors' });
+                
+                const msgBox = document.getElementById('message-box');
+                msgBox.innerText = translations[currentLang].msgSuccess;
+                msgBox.className = "p-4 rounded-xl text-center bg-emerald-100 text-emerald-700 block shadow-sm";
+                
                 form.reset();
-                // Keep the last location but clear form fields
-            } catch (error) {
-                messageBox.textContent = "Error: မပို့နိုင်ပါ။ URL မှားနေနိုင်ပါသည်။";
-                messageBox.className = "p-4 rounded-xl text-center text-sm font-medium bg-rose-100 text-rose-700 block";
+                mainOther.classList.add('hidden-el');
+                subOther.classList.add('hidden-el');
+                setTimeout(() => msgBox.className = "hidden-el", 4000);
+                refreshGPS();
+            } catch (err) {
+                alert(translations[currentLang].msgError);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = originalContent;
-                setTimeout(() => messageBox.className = "hidden", 5000);
+                updateUI();
             }
         });
 
-        // Auto-run GPS on start
+        document.getElementById('lang-switch').value = currentLang;
+        updateUI();
         refreshGPS();
     </script>
 </body>
