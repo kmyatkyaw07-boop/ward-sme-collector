@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SME Map Collector</title>
+    
+    <!-- CSS Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        #map { height: 250px; width: 100%; border-radius: 1rem; z-index: 10; }
+        .loader { border-top-color: #ffffff; animation: spinner 1s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        input, select, textarea { font-size: 16px !important; }
+        .leaflet-container { font-family: inherit; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen pb-10 font-sans touch-manipulation">
+
+    <header class="bg-indigo-900 text-white p-5 shadow-lg sticky top-0 z-[1000]">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <h1 class="text-lg font-bold flex items-center gap-2">
+                <i data-lucide="map"></i> Ward Map Engine
+            </h1>
+            <div id="status-indicator" class="flex items-center gap-2">
+                <div id="status-dot" class="w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto p-4 space-y-4">
+        
+        <!-- API Setup -->
+        <details class="bg-white rounded-xl shadow-sm border border-slate-200 p-3">
+            <summary class="text-xs font-bold text-slate-400 cursor-pointer uppercase select-none">Config Setup</summary>
+            <input type="text" id="script-url" placeholder="Paste Web App URL here..." 
+                class="w-full mt-2 p-3 text-sm border rounded-lg bg-slate-50 outline-none">
+        </details>
+
+        <!-- Map Section -->
+        <section class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-indigo-50/30">
+                <h2 class="text-[10px] font-black text-indigo-900 uppercase tracking-widest">Location Selector</h2>
+                <span class="text-[9px] text-slate-500 italic">Tap on map to manually pin</span>
+            </div>
+            <div id="map"></div>
+            <div class="p-3 grid grid-cols-2 gap-2 bg-slate-50">
+                <div class="bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
+                    <span class="text-[9px] font-bold text-slate-400 block uppercase">Latitude</span>
+                    <input type="number" step="any" id="lat" class="bg-transparent text-xs font-mono outline-none w-full" readonly>
+                </div>
+                <div class="bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
+                    <span class="text-[9px] font-bold text-slate-400 block uppercase">Longitude</span>
+                    <input type="number" step="any" id="long" class="bg-transparent text-xs font-mono outline-none w-full" readonly>
+                </div>
+            </div>
+            <button type="button" onclick="refreshGPS()" class="w-full py-3 text-indigo-700 text-[11px] font-bold uppercase flex items-center justify-center gap-2 hover:bg-indigo-50">
+                <i data-lucide="locate-fixed" class="w-4 h-4"></i> Sync My GPS
+            </button>
+        </section>
+
+        <!-- Form Section -->
+        <section class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6">
+            <form id="data-form" class="space-y-4">
+                <input type="hidden" name="lat" id="form-lat">
+                <input type="hidden" name="long" id="form-long">
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Shop Name</label>
+                        <input type="text" name="name" required placeholder="Shop Name" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Category</label>
+                            <select name="category" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
+                                <option value="Home Shop">Home Shop</option>
+                                <option value="Hair Salon">Hair Salon</option>
+                                <option value="Tea Shop">Tea Shop</option>
+                                <option value="Pharmacy">Pharmacy</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Scale</label>
+                            <select name="scale" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
+                                <option value="Micro">Micro</option>
+                                <option value="Small">Small</option>
+                                <option value="Medium">Medium</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 p-3 bg-indigo-50/50 rounded-xl">
+                    <div>
+                        <label class="text-[10px] font-bold text-indigo-700 uppercase block mb-1">Digital Pay?</label>
+                        <select name="digitalPayment" class="w-full p-2 text-xs rounded border bg-white font-bold">
+                            <option value="Yes">KPay/CB</option>
+                            <option value="No">Cash Only</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-indigo-700 uppercase block mb-1">Traffic</label>
+                        <select name="traffic" class="w-full p-2 text-xs rounded border bg-white font-bold">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Remarks</label>
+                    <textarea name="remark" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[60px] text-sm" placeholder="Additional notes..."></textarea>
+                </div>
+
+                <button type="submit" id="submit-btn" 
+                    class="w-full bg-indigo-900 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="save" class="w-5 h-5"></i> <span>Save SME Record</span>
+                </button>
+            </form>
+        </section>
+
+        <div id="message-box" class="hidden p-4 rounded-xl text-center text-sm font-medium"></div>
+    </main>
+
+    <!-- JS Dependencies -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        lucide.createIcons();
+        
+        // --- Map Initialization ---
+        let map = L.map('map').setView([16.8409, 96.1735], 13); // Default Yangon
+        let marker;
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        function updateMarker(lat, lng, center = false) {
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+                marker.on('dragend', function(e) {
+                    const pos = marker.getLatLng();
+                    setCoords(pos.lat, pos.lng);
+                });
+            }
+            if (center) map.setView([lat, lng], 17);
+            setCoords(lat, lng);
+        }
+
+        function setCoords(lat, lng) {
+            const latVal = parseFloat(lat).toFixed(6);
+            const lngVal = parseFloat(lng).toFixed(6);
+            document.getElementById('lat').value = latVal;
+            document.getElementById('long').value = lngVal;
+            document.getElementById('form-lat').value = latVal;
+            document.getElementById('form-long').value = lngVal;
+        }
+
+        // Click on map to place marker
+        map.on('click', function(e) {
+            updateMarker(e.latlng.lat, e.latlng.lng);
+        });
+
+        // GPS Sync
+        function refreshGPS() {
+            if (!navigator.geolocation) return alert("GPS Not Supported");
+            
+            navigator.geolocation.getCurrentPosition(pos => {
+                updateMarker(pos.coords.latitude, pos.coords.longitude, true);
+            }, err => {
+                alert("GPS Error: " + err.message);
+            }, { enableHighAccuracy: true });
+        }
+
+        // --- Data Submission Logic ---
+        const form = document.getElementById('data-form');
+        const scriptInput = document.getElementById('script-url');
+        const messageBox = document.getElementById('message-box');
+        const statusDot = document.getElementById('status-dot');
+
+        scriptInput.value = localStorage.getItem('gs_url_map_v1') || '';
+        if(scriptInput.value) statusDot.className = "w-3 h-3 bg-emerald-500 rounded-full border-2 border-white";
+
+        scriptInput.addEventListener('change', () => {
+            localStorage.setItem('gs_url_map_v1', scriptInput.value);
+            statusDot.className = scriptInput.value ? "w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" : "w-3 h-3 bg-red-500 rounded-full border-2 border-white";
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = scriptInput.value;
+            if (!url) return alert("Google Script URL ကို Config တွင် အရင်ထည့်ပါ။");
+            if (!document.getElementById('form-lat').value) return alert("မြေပုံပေါ်တွင် တည်နေရာ အရင်ရွေးချယ်ပါ။");
+
+            const btn = document.getElementById('submit-btn');
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<div class="loader w-5 h-5 border-2 rounded-full border-white"></div>`;
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            data.timestamp = new Date().toLocaleString();
+
+            const finalUrl = `${url}?${new URLSearchParams(data).toString()}`;
+            
+            try {
+                await fetch(finalUrl, { method: 'GET', mode: 'no-cors' });
+                messageBox.textContent = "Data သိမ်းဆည်းပြီးပါပြီ။";
+                messageBox.className = "p-4 rounded-xl text-center text-sm font-medium bg-emerald-100 text-emerald-700 block shadow-inner";
+                form.reset();
+                // Keep the last location but clear form fields
+            } catch (error) {
+                messageBox.textContent = "Error: မပို့နိုင်ပါ။ URL မှားနေနိုင်ပါသည်။";
+                messageBox.className = "p-4 rounded-xl text-center text-sm font-medium bg-rose-100 text-rose-700 block";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                setTimeout(() => messageBox.className = "hidden", 5000);
+            }
+        });
+
+        // Auto-run GPS on start
+        refreshGPS();
+    </script>
+</body>
+</html>
