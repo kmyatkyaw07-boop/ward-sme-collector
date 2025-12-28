@@ -12,21 +12,22 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Pyidaungsu:wght@400;700&display=swap');
         :root { font-family: 'Inter', 'Pyidaungsu', sans-serif; }
-        #main-map { height: 220px; width: 100%; z-index: 10; }
+        #main-map { height: 200px; width: 100%; z-index: 10; }
         #review-map { height: 120px; width: 100%; border-radius: 0.75rem; margin-top: 8px; }
         .hidden-el { display: none !important; }
         .chip { transition: all 0.2s; cursor: pointer; border: 1px solid #e2e8f0; }
         .chip.active { background-color: #3730a3; color: white; border-color: #3730a3; transform: scale(0.95); }
-        .loader { border-top-color: transparent; border-radius: 50%; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        .loader { border-radius: 50%; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         body.modal-open { overflow: hidden; }
+        select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1rem; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-10">
 
     <header class="bg-indigo-900 text-white p-4 shadow-md sticky top-0 z-[1000] flex justify-between items-center">
         <h1 class="font-bold flex items-center gap-2 italic">
-            <i data-lucide="database"></i> SME ANALYST <span class="text-[10px] bg-amber-500 px-1 rounded text-indigo-900 not-italic">PRO</span>
+            <i data-lucide="database"></i> SME ANALYST <span class="text-[10px] bg-amber-500 px-1 rounded text-indigo-900 not-italic uppercase">Myanmar</span>
         </h1>
         <select id="lang-switch" class="bg-indigo-800 text-xs border rounded px-2 py-1 outline-none text-white border-indigo-700">
             <option value="en">English</option>
@@ -34,7 +35,7 @@
         </select>
     </header>
 
-    <main class="max-w-md mx-auto p-4 space-y-6">
+    <main class="max-w-md mx-auto p-4 space-y-4">
         
         <!-- Map Control -->
         <section class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
@@ -48,51 +49,54 @@
         </section>
 
         <!-- Main Form -->
-        <form id="collector-form" class="space-y-6">
-            <!-- Hidden Fields -->
+        <form id="collector-form" class="space-y-4">
             <input type="hidden" name="lat" id="inp-lat">
             <input type="hidden" name="lng" id="inp-lng">
             <input type="hidden" name="digital_pay" id="inp-pay">
             <input type="hidden" name="delivery_apps" id="inp-delivery">
 
-            <!-- Basic Info -->
+            <!-- Core Business Info -->
             <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-4">
                 <h3 class="text-xs font-black text-indigo-900 uppercase tracking-widest border-b pb-2 flex items-center gap-2">
-                    <i data-lucide="info" class="w-4 h-4"></i> Core Business Info
+                    <i data-lucide="info" class="w-4 h-4 text-amber-500"></i> Core Business Info
                 </h3>
                 
                 <div>
                     <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelName">Shop Name</label>
-                    <input type="text" name="shop_name" id="shop_name" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    <input type="text" name="shop_name" id="shop_name" required placeholder="Enter shop name..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-3">
                     <div>
-                        <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelCategory">Category</label>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelCategory">Main Category</label>
                         <select id="cat-main" name="category_main" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"></select>
                     </div>
                     <div>
-                        <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelSubCategory">Sub-type</label>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelSubCategory">Specific Sub-type</label>
                         <select id="cat-sub" name="category_sub" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"></select>
+                    </div>
+                    <div id="other-cat-box" class="hidden-el animate-pulse">
+                        <label class="text-[11px] font-bold text-indigo-500 mb-1 block">Specify Other Category</label>
+                        <input type="text" name="other_category" id="other_category_input" placeholder="Please specify..." class="w-full p-3 bg-indigo-50 border border-indigo-200 rounded-2xl outline-none text-sm">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Staff Count</label>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Staff Size</label>
                         <select name="staff_size" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
-                            <option value="1-3">1-3 (Micro)</option>
-                            <option value="4-10">4-10 (Small)</option>
-                            <option value="11-30">11-30 (Medium)</option>
-                            <option value="30+">30+ (Large)</option>
+                            <option value="1-2">1-2 (Self/Family)</option>
+                            <option value="3-5">3-5 (Micro)</option>
+                            <option value="6-15">6-15 (Small)</option>
+                            <option value="16+">16+ (Medium)</option>
                         </select>
                     </div>
                     <div>
                         <label class="text-[11px] font-bold text-slate-500 mb-1 block">Price Tier</label>
                         <select name="price_tier" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
-                            <option value="Budget">Low (Budget)</option>
-                            <option value="Mid">Medium (Mid)</option>
-                            <option value="Premium">High (Premium)</option>
+                            <option value="Budget">Economic</option>
+                            <option value="Standard">Standard</option>
+                            <option value="Premium">Premium</option>
                         </select>
                     </div>
                 </div>
@@ -101,52 +105,45 @@
             <!-- Digital Maturity -->
             <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-4">
                 <h3 class="text-xs font-black text-indigo-900 uppercase tracking-widest border-b pb-2 flex items-center gap-2">
-                    <i data-lucide="smartphone" class="w-4 h-4"></i> Digital Maturity
+                    <i data-lucide="smartphone" class="w-4 h-4 text-blue-500"></i> Digital Presence
                 </h3>
-
                 <div>
-                    <label class="text-[11px] font-bold text-slate-500 mb-2 block">Accepted Digital Payments</label>
-                    <div class="flex flex-wrap gap-2" id="pay-chips">
-                        <!-- Chips injected -->
-                    </div>
+                    <label class="text-[11px] font-bold text-slate-500 mb-2 block">Accepted Payments</label>
+                    <div class="flex flex-wrap gap-2" id="pay-chips"></div>
                 </div>
-
                 <div>
                     <label class="text-[11px] font-bold text-slate-500 mb-2 block">Delivery Platforms</label>
-                    <div class="flex flex-wrap gap-2" id="delivery-chips">
-                        <!-- Chips injected -->
-                    </div>
+                    <div class="flex flex-wrap gap-2" id="delivery-chips"></div>
                 </div>
             </div>
 
-            <!-- Future Analysis Fields -->
+            <!-- Analysis Section -->
             <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-4">
                 <h3 class="text-xs font-black text-indigo-900 uppercase tracking-widest border-b pb-2 flex items-center gap-2">
-                    <i data-lucide="trending-up" class="w-4 h-4"></i> Deep Analysis Inputs
+                    <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-500"></i> Local Insights
                 </h3>
-                
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Competitors Nearby</label>
-                        <select name="competitor_density" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
-                            <option value="None">None (Isolated)</option>
-                            <option value="Few">1-2 (Low)</option>
-                            <option value="Many">3+ (High)</option>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Nearby Competition</label>
+                        <select name="competition" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
+                            <option value="None">Isolated</option>
+                            <option value="Moderate">Moderate (1-3)</option>
+                            <option value="High">Clustered (4+)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Store Visibility</label>
-                        <select name="visibility" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
-                            <option value="Hidden">Hidden/Alley</option>
-                            <option value="Standard">Standard Street</option>
-                            <option value="Prime">Prime/Corner</option>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Foot Traffic</label>
+                        <select name="traffic" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
+                            <option value="Low">Low/Quiet</option>
+                            <option value="Med">Medium</option>
+                            <option value="High">Busy Street</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            <button type="button" onclick="prepareReview()" class="w-full bg-indigo-900 text-white font-bold py-5 rounded-3xl shadow-2xl active:scale-95 transition-transform flex items-center justify-center gap-3">
-                <i data-lucide="file-check"></i> <span data-lang="btnReview">Review & Store Data</span>
+            <button type="button" onclick="prepareReview()" class="w-full bg-indigo-900 text-white font-bold py-5 rounded-[2rem] shadow-2xl active:scale-95 transition-transform flex items-center justify-center gap-3">
+                <i data-lucide="eye"></i> <span data-lang="btnReview">Review & Store</span>
             </button>
         </form>
     </main>
@@ -154,70 +151,69 @@
     <!-- Review Modal -->
     <div id="modal" class="hidden-el fixed inset-0 z-[2000] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeModal()"></div>
-        <div class="relative bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="relative bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
             <div class="p-6 bg-indigo-900 text-white shrink-0">
-                <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="check-circle-2"></i> Verification</h2>
-                <p class="text-[10px] opacity-70">Please check every field before final save.</p>
+                <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="clipboard-check"></i> Data Verification</h2>
             </div>
-            
-            <div class="p-6 overflow-y-auto space-y-3 bg-slate-50">
-                <div id="review-map-container">
-                    <label class="text-[10px] font-bold text-indigo-500 uppercase">Map Verification</label>
-                    <div id="review-map"></div>
-                </div>
-                <div id="review-list" class="space-y-2">
-                    <!-- Summary items -->
-                </div>
+            <div class="p-6 overflow-y-auto space-y-4 bg-slate-50">
+                <div id="review-map"></div>
+                <div id="review-list" class="space-y-2"></div>
             </div>
-
             <div class="p-6 bg-white border-t flex gap-3">
                 <button onclick="closeModal()" class="flex-1 py-4 text-slate-500 font-bold text-sm border border-slate-200 rounded-2xl">Edit</button>
-                <button id="submit-final" onclick="performSubmit()" class="flex-[2] py-4 bg-emerald-600 text-white font-bold text-sm rounded-2xl shadow-lg flex items-center justify-center gap-2">
-                    <i data-lucide="upload-cloud"></i> Save to Cloud
+                <button id="submit-final" onclick="performSubmit()" class="flex-[2] py-4 bg-emerald-600 text-white font-bold text-sm rounded-2xl shadow-lg flex items-center justify-center gap-2 active:bg-emerald-700">
+                    <i data-lucide="cloud-upload"></i> Confirm & Save
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Success Feedback -->
-    <div id="toast" class="hidden-el fixed top-10 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-6 py-3 rounded-full shadow-xl font-bold z-[3000] flex items-center gap-2">
-        <i data-lucide="check"></i> Records Saved!
+    <div id="toast" class="hidden-el fixed top-10 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-8 py-4 rounded-full shadow-2xl font-bold z-[3000] flex items-center gap-3">
+        <i data-lucide="check-circle-2"></i> Record Stored Successfully
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyU3iKTG50czkEg0g58bnrOMZMMWI2o3MDZZwEMSLhanl1k6OX-LebuezlffXcVWy1xEA/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbyNpcgqSqW_PrcNzbXbMXOkMNByxcP3Aal1WGAMIwdB3ho-utzp4xghrHuhMLqtxCkXcw/exec";
         
+        const categories = {
+            en: {
+                "Food & Beverage": ["Restaurant", "Cafe/Tea Shop", "Street Food Vendor", "Bar/KTV", "Bakery/Confectionery", "Other"],
+                "Retail & Wholesale": ["Grocery Store", "Mobile/Electronics", "Clothing/Fashion", "Pharmacy", "Wholesale Store", "Cosmetics Shop", "Other"],
+                "Services": ["Barber/Salon", "Laundry", "Auto/Bike Repair", "Printing/Xerox", "Tailoring", "Clinic", "Delivery/Logistics", "Other"],
+                "Value & Luxury": ["Gold/Jewelry", "Goldsmith (Nawali)", "Money Exchange", "Mobile Money Agent", "Other"],
+                "Other Business": ["Educational/Tuition", "Travel/Ticket", "Internet Cafe", "Construction Materials", "Other"]
+            },
+            mm: {
+                "စားသောက်ကုန်": ["စားသောက်ဆိုင်", "ကော်ဖီ/လက်ဖက်ရည်ဆိုင်", "လမ်းဘေးဆိုင်", "ဘား/KTV", "မုန့်တိုက်", "အခြား"],
+                "အရောင်းဆိုင်": ["ကုန်စုံဆိုင်", "ဖုန်း/အီလက်ထရောနစ်", "အဝတ်အထည်", "ဆေးဆိုင်", "လက်ကားဆိုင်", "အလှကုန်ဆိုင်", "အခြား"],
+                "ဝန်ဆောင်မှု": ["ဆံပင်ညှပ်/အလှပြင်", "အဝတ်လျှော်", "ကား/ဆိုင်ကယ်ပြင်", "မိတ္တူ/ပုံနှိပ်", "အပ်ချုပ်ဆိုင်", "ဆေးခန်း", "ပို့ဆောင်ရေး", "အခြား"],
+                "ရွှေနှင့်ငွေကြေး": ["ရွှေဆိုင်", "ပန်းထိမ်လုပ်ငန်း", "ငွေလဲလုပ်ငန်း", "မိုဘိုင်းငွေလွှဲကိုယ်စားလှယ်", "အခြား"],
+                "အခြားလုပ်ငန်း": ["ကျူရှင်/ပညာရေး", "ခရီးသွား/လက်မှတ်", "အင်တာနက်ကဖေး", "ဆောက်လုပ်ရေးပစ္စည်း", "အခြား"]
+            }
+        };
+
         const config = {
             en: {
                 payment: ["MMQR", "Kpay", "AYA Pay", "WaveMoney", "True Money", "Cash Only"],
                 delivery: ["FoodPanda", "Grab", "Door2Door", "Own Delivery", "None"],
-                cats: {
-                    "Food & Drink": ["Restaurant", "Cafe", "Bar", "Street Vendor"],
-                    "Retail": ["Groceries", "Fashion", "Electronics", "Pharmacy"],
-                    "Services": ["Laundry", "Barber", "Repair Shop", "Printing"]
-                },
                 labels: {
                     syncGps: "Locate Me",
                     labelName: "Shop Name",
-                    labelCategory: "Category",
-                    labelSubCategory: "Sub-type",
+                    labelCategory: "Category Group",
+                    labelSubCategory: "Specific Business",
                     btnReview: "Review & Store Data"
                 }
             },
             mm: {
                 payment: ["MMQR", "Kpay", "AYA Pay", "WaveMoney", "True Money", "ငွေသားသီးသန့်"],
                 delivery: ["FoodPanda", "Grab", "Door2Door", "ကိုယ်ပိုင်ပို့ဆောင်ရေး", "မရှိပါ"],
-                cats: {
-                    "စားသောက်ကုန်": ["စားသောက်ဆိုင်", "ကော်ဖီဆိုင်", "အရက်/ဘီယာ", "လမ်းဘေးဆိုင်"],
-                    "အရောင်းဆိုင်": ["ကုန်စုံဆိုင်", "အထည်အလိပ်", "ဖုန်း/အီလက်ထရောနစ်", "ဆေးဆိုင်"],
-                    "ဝန်ဆောင်မှု": ["အဝတ်လျှော်", "ဆံပင်ညပ်", "ပြင်ဆင်ရေး", "မိတ္တူ/ပုံနှိပ်"]
-                },
                 labels: {
                     syncGps: "တည်နေရာယူမည်",
                     labelName: "ဆိုင်အမည်",
                     labelCategory: "အဓိကအမျိုးအစား",
-                    labelSubCategory: "အမျိုးအစားခွဲ",
+                    labelSubCategory: "လုပ်ငန်းအမျိုးအစား",
                     btnReview: "စစ်ဆေးပြီး သိမ်းဆည်းမည်"
                 }
             }
@@ -230,17 +226,13 @@
 
         function updateUI() {
             const langData = config[currentLang];
-            
-            // Labels
             document.querySelectorAll('[data-lang]').forEach(el => {
                 el.innerText = langData.labels[el.getAttribute('data-lang')];
             });
 
-            // Main Category
             const catMain = document.getElementById('cat-main');
-            catMain.innerHTML = Object.keys(langData.cats).map(c => `<option value="${c}">${c}</option>`).join('');
+            catMain.innerHTML = Object.keys(categories[currentLang]).map(c => `<option value="${c}">${c}</option>`).join('');
             
-            // Chips
             renderChips('pay-chips', langData.payment, selectedPay, 'inp-pay');
             renderChips('delivery-chips', langData.delivery, selectedDelivery, 'inp-delivery');
             
@@ -251,7 +243,7 @@
         function renderChips(containerId, list, setObj, hiddenInputId) {
             const container = document.getElementById(containerId);
             container.innerHTML = list.map(item => `
-                <div class="chip px-4 py-2 rounded-xl text-xs font-semibold bg-white ${setObj.has(item) ? 'active' : ''}" 
+                <div class="chip px-4 py-2 rounded-2xl text-xs font-semibold bg-white ${setObj.has(item) ? 'active' : ''}" 
                      onclick="toggleChip(this, '${item}', '${containerId}', '${hiddenInputId}')">${item}</div>
             `).join('');
         }
@@ -260,7 +252,6 @@
             const setObj = containerId === 'pay-chips' ? selectedPay : selectedDelivery;
             if (setObj.has(value)) setObj.delete(value);
             else setObj.add(value);
-            
             el.classList.toggle('active');
             document.getElementById(hiddenInputId).value = Array.from(setObj).join(', ');
         }
@@ -268,21 +259,28 @@
         function updateSubCats() {
             const main = document.getElementById('cat-main').value;
             const sub = document.getElementById('cat-sub');
-            const list = config[currentLang].cats[main] || [];
+            const list = categories[currentLang][main] || [];
             sub.innerHTML = list.map(c => `<option value="${c}">${c}</option>`).join('');
+            checkOtherStatus();
+        }
+
+        function checkOtherStatus() {
+            const main = document.getElementById('cat-main').value;
+            const sub = document.getElementById('cat-sub').value;
+            const box = document.getElementById('other-cat-box');
+            if (sub === "Other" || sub === "အခြား") {
+                box.classList.remove('hidden-el');
+            } else {
+                box.classList.add('hidden-el');
+            }
         }
 
         function initMaps() {
             mainMap = L.map('main-map').setView([16.8409, 96.1735], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mainMap);
-            
             mainMarker = L.marker([16.8409, 96.1735], { draggable: true }).addTo(mainMap);
             mainMarker.on('dragend', () => syncCoords(mainMarker.getLatLng()));
-            mainMap.on('click', (e) => {
-                mainMarker.setLatLng(e.latlng);
-                syncCoords(e.latlng);
-            });
-
+            mainMap.on('click', (e) => { mainMarker.setLatLng(e.latlng); syncCoords(e.latlng); });
             refreshGPS();
         }
 
@@ -302,35 +300,42 @@
         }
 
         function prepareReview() {
-            const name = document.getElementById('shop_name').value.trim();
-            if (!name) return document.getElementById('shop_name').classList.add('border-red-500');
-            
+            const nameField = document.getElementById('shop_name');
+            if (!nameField.value.trim()) {
+                nameField.scrollIntoView({ behavior: 'smooth' });
+                return nameField.classList.add('border-red-500');
+            }
+            nameField.classList.remove('border-red-500');
+
             const form = document.getElementById('collector-form');
             const data = new FormData(form);
             const list = document.getElementById('review-list');
             
+            const subValue = data.get('category_sub');
+            const finalType = (subValue === "Other" || subValue === "အခြား") ? 
+                            `Other: ${data.get('other_category')}` : 
+                            `${data.get('category_main')} > ${subValue}`;
+
             const summary = [
-                ["Name", data.get('shop_name')],
-                ["Type", `${data.get('category_main')} > ${data.get('category_sub')}`],
-                ["Payments", data.get('digital_pay') || "Cash Only"],
-                ["Delivery", data.get('delivery_apps') || "Walk-in Only"],
-                ["Scale", `Staff: ${data.get('staff_size')} | Price: ${data.get('price_tier')}`]
+                ["Shop", data.get('shop_name')],
+                ["Business", finalType],
+                ["Digital", data.get('digital_pay') || "None"],
+                ["Delivery", data.get('delivery_apps') || "None"],
+                ["Location", `${data.get('lat')}, ${data.get('lng')}`]
             ];
 
             list.innerHTML = summary.map(([k,v]) => `
-                <div class="bg-white p-3 rounded-xl border border-slate-100 flex justify-between items-start">
-                    <span class="text-[9px] font-black text-slate-400 uppercase w-20">${k}</span>
-                    <span class="text-xs font-bold text-slate-800 text-right flex-1">${v}</span>
+                <div class="bg-white p-3 rounded-2xl border border-slate-100 flex flex-col gap-1">
+                    <span class="text-[9px] font-black text-indigo-400 uppercase tracking-tighter">${k}</span>
+                    <span class="text-xs font-bold text-slate-800">${v}</span>
                 </div>
             `).join('');
 
             document.getElementById('modal').classList.remove('hidden-el');
             document.body.classList.add('modal-open');
 
-            // Init Review Map
             const lat = parseFloat(data.get('lat'));
             const lng = parseFloat(data.get('lng'));
-            
             setTimeout(() => {
                 if (!reviewMap) {
                     reviewMap = L.map('review-map', { zoomControl: false, attributionControl: false }).setView([lat, lng], 17);
@@ -341,7 +346,7 @@
                     reviewMarker.setLatLng([lat, lng]);
                     reviewMap.invalidateSize();
                 }
-            }, 100);
+            }, 150);
         }
 
         function closeModal() {
@@ -352,42 +357,37 @@
         async function performSubmit() {
             const btn = document.getElementById('submit-final');
             btn.disabled = true;
-            btn.innerHTML = `<div class="loader"></div> Processing...`;
+            btn.innerHTML = `<div class="loader mx-auto"></div>`;
 
             const data = Object.fromEntries(new FormData(document.getElementById('collector-form')).entries());
             data.timestamp = new Date().toISOString();
 
             try {
-                // Background submission
-                fetch(`${API_URL}?${new URLSearchParams(data).toString()}`, { mode: 'no-cors' });
-                
+                await fetch(`${API_URL}?${new URLSearchParams(data).toString()}`, { method: 'GET', mode: 'no-cors' });
                 closeModal();
                 document.getElementById('toast').classList.remove('hidden-el');
                 document.getElementById('collector-form').reset();
                 selectedPay.clear();
                 selectedDelivery.clear();
-                
                 setTimeout(() => {
                     document.getElementById('toast').classList.add('hidden-el');
                     updateUI();
                 }, 3000);
             } catch (e) {
-                alert("Submission failed. Check connection.");
+                alert("Submission error. Verify your internet.");
                 btn.disabled = false;
-                btn.innerText = "Retry Save";
+                btn.innerText = "Confirm & Save";
             }
         }
 
         document.getElementById('cat-main').addEventListener('change', updateSubCats);
+        document.getElementById('cat-sub').addEventListener('change', checkOtherStatus);
         document.getElementById('lang-switch').addEventListener('change', (e) => {
             currentLang = e.target.value;
             updateUI();
         });
 
-        window.onload = () => {
-            initMaps();
-            updateUI();
-        };
+        window.onload = () => { initMaps(); updateUI(); };
     </script>
 </body>
 </html>
