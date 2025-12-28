@@ -1,219 +1,413 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SME Data Collector Myanmar</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/lucide@latest"></script>
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Pyidaungsu:wght@400;700&display=swap');
-body { font-family:'Inter','Pyidaungsu',sans-serif; }
-#map { height:220px; }
-.chip{border:1px solid #e2e8f0;padding:8px 14px;border-radius:999px;font-size:12px;font-weight:600}
-.chip.active{background:#3730a3;color:#fff;border-color:#3730a3}
-.hidden{display:none}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SME Analyst - Data Collector</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Pyidaungsu:wght@400;700&display=swap');
+        :root { font-family: 'Inter', 'Pyidaungsu', sans-serif; }
+        #main-map { height: 200px; width: 100%; z-index: 10; }
+        #review-map { height: 120px; width: 100%; border-radius: 0.75rem; margin-top: 8px; }
+        .hidden-el { display: none !important; }
+        .chip { transition: all 0.2s; cursor: pointer; border: 1px solid #e2e8f0; }
+        .chip.active { background-color: #3730a3; color: white; border-color: #3730a3; transform: scale(0.95); }
+        .loader { border-radius: 50%; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body.modal-open { overflow: hidden; }
+        select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1rem; }
+    </style>
 </head>
+<body class="bg-slate-50 min-h-screen pb-10">
 
-<body class="bg-slate-50 pb-10">
+    <header class="bg-indigo-900 text-white p-4 shadow-md sticky top-0 z-[1000] flex justify-between items-center">
+        <h1 class="font-bold flex items-center gap-2 italic">
+            <i data-lucide="database"></i> SME ANALYST <span class="text-[10px] bg-amber-500 px-1 rounded text-indigo-900 not-italic uppercase">Myanmar</span>
+        </h1>
+        <select id="lang-switch" class="bg-indigo-800 text-xs border rounded px-2 py-1 outline-none text-white border-indigo-700">
+            <option value="en">English</option>
+            <option value="mm" selected>မြန်မာ</option>
+        </select>
+    </header>
 
-<header class="bg-indigo-900 text-white p-4 sticky top-0 z-50 flex justify-between items-center">
-  <h1 class="font-bold text-sm flex gap-2 items-center">
-    <i data-lucide="database"></i> SME COLLECTOR
-    <span class="text-[10px] bg-amber-400 px-1 rounded text-indigo-900">MM</span>
-  </h1>
-  <select id="lang" class="bg-indigo-800 text-xs px-2 py-1 rounded">
-    <option value="mm" selected>မြန်မာ</option>
-    <option value="en">English</option>
-  </select>
-</header>
+    <main class="max-w-md mx-auto p-4 space-y-4">
+        
+        <!-- Map Control -->
+        <section class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
+            <div id="main-map"></div>
+            <div class="p-3 bg-white flex justify-between items-center">
+                <span class="text-[10px] font-bold text-slate-400" id="coords-display">0.000000, 0.000000</span>
+                <button onclick="refreshGPS()" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 active:bg-indigo-200 transition-colors">
+                    <i data-lucide="crosshair" class="w-3 h-3"></i> <span data-lang="syncGps">Locate Me</span>
+                </button>
+            </div>
+        </section>
 
-<main class="max-w-md mx-auto p-4 space-y-4">
+        <!-- Main Form -->
+        <form id="collector-form" class="space-y-4">
+            <input type="hidden" name="lat" id="inp-lat">
+            <input type="hidden" name="lng" id="inp-lng">
+            <input type="hidden" name="digital_pay" id="inp-pay">
+            <input type="hidden" name="delivery_apps" id="inp-delivery">
+            <!-- New Hidden Language Input -->
+            <input type="hidden" name="lang_used" id="inp-lang-used" value="mm">
 
-<!-- MAP -->
-<section class="bg-white rounded-2xl shadow overflow-hidden">
-  <div id="map"></div>
-  <div class="flex justify-between p-2 text-xs">
-    <span id="coords">0.000000, 0.000000</span>
-    <button onclick="getGPS()" class="text-indigo-700 font-bold" data-t="gps">တည်နေရာယူမည်</button>
-  </div>
-</section>
+            <!-- Core Business Info -->
+            <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-4">
+                <h3 class="text-xs font-black text-indigo-900 uppercase tracking-widest border-b pb-2 flex items-center gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-amber-500"></i> Core Business Info
+                </h3>
+                
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelName">Shop Name</label>
+                    <input type="text" name="shop_name" id="shop_name" required placeholder="Enter shop name..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
 
-<form id="form" class="space-y-4">
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelCategory">Main Category</label>
+                        <select id="cat-main" name="category_main" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"></select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelSubCategory">Specific Sub-type</label>
+                        <select id="cat-sub" name="category_sub" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"></select>
+                    </div>
+                    <div id="other-cat-box" class="hidden-el animate-pulse">
+                        <label class="text-[11px] font-bold text-indigo-500 mb-1 block">Specify Other Category</label>
+                        <input type="text" name="other_category" id="other_category_input" placeholder="Please specify..." class="w-full p-3 bg-indigo-50 border border-indigo-200 rounded-2xl outline-none text-sm">
+                    </div>
+                </div>
 
-<input type="hidden" name="lat" id="lat">
-<input type="hidden" name="lng" id="lng">
-<input type="hidden" name="lang_used" id="lang_used" value="mm">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Staff Size</label>
+                        <select name="staff_size" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
+                            <option value="1-2">1-2 (Self/Family)</option>
+                            <option value="3-5">3-5 (Micro)</option>
+                            <option value="6-15">6-15 (Small)</option>
+                            <option value="16+">16+ (Medium)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Price Tier</label>
+                        <select name="price_tier" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
+                            <option value="Budget">Economic</option>
+                            <option value="Standard">Standard</option>
+                            <option value="Premium">Premium</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
-<!-- COLLECTOR -->
-<section class="bg-white p-4 rounded-2xl space-y-2">
-  <label class="text-xs font-bold text-slate-500" data-t="collector">Enumerator / Collector ID</label>
-  <input required name="collector_id" class="w-full p-3 rounded-xl border bg-slate-50 text-sm"
-   placeholder="MM-YGN-01">
-</section>
+            <!-- Digital Maturity -->
+            <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-4">
+                <h3 class="text-xs font-black text-indigo-900 uppercase tracking-widest border-b pb-2 flex items-center gap-2">
+                    <i data-lucide="smartphone" class="w-4 h-4 text-blue-500"></i> Digital Presence
+                </h3>
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 mb-2 block">Accepted Payments</label>
+                    <div class="flex flex-wrap gap-2" id="pay-chips"></div>
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 mb-2 block">Delivery Platforms</label>
+                    <div class="flex flex-wrap gap-2" id="delivery-chips"></div>
+                </div>
+            </div>
 
-<!-- BUSINESS -->
-<section class="bg-white p-4 rounded-2xl space-y-3">
-<h3 class="font-bold text-xs text-indigo-900" data-t="biz">လုပ်ငန်းအချက်အလက်</h3>
+            <!-- Analysis Section -->
+            <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-4">
+                <h3 class="text-xs font-black text-indigo-900 uppercase tracking-widest border-b pb-2 flex items-center gap-2">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-500"></i> Local Insights
+                </h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Nearby Competition</label>
+                        <select name="competition" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
+                            <option value="None">Isolated</option>
+                            <option value="Moderate">Moderate (1-3)</option>
+                            <option value="High">Clustered (4+)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Foot Traffic</label>
+                        <select name="traffic" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
+                            <option value="Low">Low/Quiet</option>
+                            <option value="Med">Medium</option>
+                            <option value="High">Busy Street</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
-<input required name="shop_name" class="w-full p-3 rounded-xl border bg-slate-50 text-sm"
- placeholder="ဆိုင်အမည် / Shop Name">
+            <button type="button" onclick="prepareReview()" class="w-full bg-indigo-900 text-white font-bold py-5 rounded-[2rem] shadow-2xl active:scale-95 transition-transform flex items-center justify-center gap-3">
+                <i data-lucide="eye"></i> <span data-lang="btnReview">Review & Store</span>
+            </button>
+        </form>
+    </main>
 
-<select id="mainCat" name="category_main"
- class="w-full p-3 rounded-xl border bg-slate-50 text-sm"></select>
+    <!-- Review Modal -->
+    <div id="modal" class="hidden-el fixed inset-0 z-[2000] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeModal()"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+            <div class="p-6 bg-indigo-900 text-white shrink-0">
+                <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="clipboard-check"></i> Data Verification</h2>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4 bg-slate-50">
+                <div id="review-map"></div>
+                <div id="review-list" class="space-y-2"></div>
+            </div>
+            <div class="p-6 bg-white border-t flex gap-3">
+                <button onclick="closeModal()" class="flex-1 py-4 text-slate-500 font-bold text-sm border border-slate-200 rounded-2xl">Edit</button>
+                <button id="submit-final" onclick="performSubmit()" class="flex-[2] py-4 bg-emerald-600 text-white font-bold text-sm rounded-2xl shadow-lg flex items-center justify-center gap-2 active:bg-emerald-700">
+                    <i data-lucide="cloud-upload"></i> <span id="btn-text">Confirm & Save</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
-<select id="subCat" name="category_sub"
- class="w-full p-3 rounded-xl border bg-slate-50 text-sm"></select>
+    <!-- Success Feedback -->
+    <div id="toast" class="hidden-el fixed top-10 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-8 py-4 rounded-full shadow-2xl font-bold z-[3000] flex items-center gap-3">
+        <i data-lucide="check-circle-2"></i> Record Stored Successfully
+    </div>
 
-<input id="otherCat" name="other_category"
- class="w-full p-3 rounded-xl border bg-indigo-50 text-sm hidden"
- placeholder="အခြားအမျိုးအစား ဖော်ပြပါ">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbyQGdDzd_mUtoLxIrTszLA6LgUqgEuJ0E3kPoEYJ3bAbuqmfsrFVW_OpKlyiMsYT84MsA/exec";
+        
+        const categories = {
+            en: {
+                "Food & Beverage": ["Restaurant", "Cafe/Tea Shop", "Street Food Vendor", "Bar/KTV", "Bakery/Confectionery", "Other"],
+                "Retail & Wholesale": ["Grocery Store", "Mobile/Electronics", "Clothing/Fashion", "Pharmacy", "Wholesale Store", "Cosmetics Shop", "Other"],
+                "Services": ["Barber/Salon", "Laundry", "Auto/Bike Repair", "Printing/Xerox", "Tailoring", "Clinic", "Delivery/Logistics", "Other"],
+                "Value & Luxury": ["Gold/Jewelry", "Goldsmith (Nawali)", "Money Exchange", "Mobile Money Agent", "Other"],
+                "Other Business": ["Educational/Tuition", "Travel/Ticket", "Internet Cafe", "Construction Materials", "Other"]
+            },
+            mm: {
+                "စားသောက်ကုန်": ["စားသောက်ဆိုင်", "ကော်ဖီ/လက်ဖက်ရည်ဆိုင်", "လမ်းဘေးဆိုင်", "ဘား/KTV", "မုန့်တိုက်", "အခြား"],
+                "အရောင်းဆိုင်": ["ကုန်စုံဆိုင်", "ဖုန်း/အီလက်ထရောနစ်", "အဝတ်အထည်", "ဆေးဆိုင်", "လက်ကားဆိုင်", "အလှကုန်ဆိုင်", "အခြား"],
+                "ဝန်ဆောင်မှု": ["ဆံပင်ညပ်/အလှပြင်", "အဝတ်လျှော်", "ကား/ဆိုင်ကယ်ပြင်", "မိတ္တူ/ပုံနှိပ်", "အပ်ချုပ်ဆိုင်", "ဆေးခန်း", "ပို့ဆောင်ရေး", "အခြား"],
+                "ရွှေနှင့်ငွေကြေး": ["ရွှေဆိုင်", "ပန်းထိမ်လုပ်ငန်း", "ငွေလဲလုပ်ငန်း", "မိုဘိုင်းငွေလွှဲကိုယ်စားလှယ်", "အခြား"],
+                "အခြားလုပ်ငန်း": ["ကျူရှင်/ပညာရေး", "ခရီးသွား/လက်မှတ်", "အင်တာနက်ကဖေး", "ဆောက်လုပ်ရေးပစ္စည်း", "အခြား"]
+            }
+        };
 
-<select name="years_active"
- class="w-full p-3 rounded-xl border bg-slate-50 text-sm">
-  <option value="<1">၁ နှစ်အောက်</option>
-  <option value="1-3">၁ – ၃ နှစ်</option>
-  <option value="3-5">၃ – ၅ နှစ်</option>
-  <option value="5+">၅ နှစ်အထက်</option>
-</select>
-</section>
+        const config = {
+            en: {
+                payment: ["MMQR", "Kpay", "AYA Pay", "WaveMoney", "True Money", "Cash Only"],
+                delivery: ["FoodPanda", "Grab", "Door2Door", "Own Delivery", "None"],
+                labels: {
+                    syncGps: "Locate Me",
+                    labelName: "Shop Name",
+                    labelCategory: "Category Group",
+                    labelSubCategory: "Specific Business",
+                    btnReview: "Review & Store Data"
+                }
+            },
+            mm: {
+                payment: ["MMQR", "Kpay", "AYA Pay", "WaveMoney", "True Money", "လက်ငင်းသီးသန့်"],
+                delivery: ["FoodPanda", "Grab", "Door2Door", "ကိုယ်ပိုင်ပို့ဆောင်ရေး", "မရှိပါ"],
+                labels: {
+                    syncGps: "တည်နေရာယူမည်",
+                    labelName: "ဆိုင်အမည်",
+                    labelCategory: "အဓိကအမျိုးအစား",
+                    labelSubCategory: "လုပ်ငန်းအမျိုးအစား",
+                    btnReview: "စစ်ဆေးပြီး သိမ်းဆည်းမည်"
+                }
+            }
+        };
 
-<!-- PAYMENT -->
-<section class="bg-white p-4 rounded-2xl space-y-2">
-<h3 class="font-bold text-xs text-indigo-900" data-t="pay">ငွေပေးချေမှု</h3>
-<div id="pay" class="flex flex-wrap gap-2"></div>
-<input type="hidden" name="digital_pay" id="payVal">
-</section>
+        let currentLang = 'mm';
+        let mainMap, reviewMap, mainMarker, reviewMarker;
+        const selectedPay = new Set();
+        const selectedDelivery = new Set();
 
-<!-- DELIVERY -->
-<section class="bg-white p-4 rounded-2xl space-y-2">
-<h3 class="font-bold text-xs text-indigo-900" data-t="del">ပို့ဆောင်ရေး</h3>
-<div id="delivery" class="flex flex-wrap gap-2"></div>
-<input type="hidden" name="delivery_apps" id="delVal">
-</section>
+        function updateUI() {
+            const langData = config[currentLang];
+            document.getElementById('inp-lang-used').value = currentLang;
+            
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                el.innerText = langData.labels[el.getAttribute('data-lang')];
+            });
 
-<button type="button" onclick="submitData()"
- class="w-full bg-indigo-900 text-white py-4 rounded-2xl font-bold"
- data-t="save">သိမ်းဆည်းမည်</button>
+            const catMain = document.getElementById('cat-main');
+            catMain.innerHTML = Object.keys(categories[currentLang]).map(c => `<option value="${c}">${c}</option>`).join('');
+            
+            renderChips('pay-chips', langData.payment, selectedPay, 'inp-pay');
+            renderChips('delivery-chips', langData.delivery, selectedDelivery, 'inp-delivery');
+            
+            updateSubCats();
+            lucide.createIcons();
+        }
 
-</form>
-</main>
+        function renderChips(containerId, list, setObj, hiddenInputId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = list.map(item => `
+                <div class="chip px-4 py-2 rounded-2xl text-xs font-semibold bg-white ${setObj.has(item) ? 'active' : ''}" 
+                     onclick="toggleChip(this, '${item}', '${containerId}', '${hiddenInputId}')">${item}</div>
+            `).join('');
+        }
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-const API_URL="YOUR_APPS_SCRIPT_URL";
+        function toggleChip(el, value, containerId, hiddenInputId) {
+            const setObj = containerId === 'pay-chips' ? selectedPay : selectedDelivery;
+            if (setObj.has(value)) setObj.delete(value);
+            else setObj.add(value);
+            el.classList.toggle('active');
+            document.getElementById(hiddenInputId).value = Array.from(setObj).join(', ');
+        }
 
-const dict={
-mm:{
- gps:"တည်နေရာယူမည်",
- collector:"စာရင်းကောက်ယူသူ",
- biz:"လုပ်ငန်းအချက်အလက်",
- pay:"ငွေပေးချေမှု",
- del:"ပို့ဆောင်ရေး",
- save:"သိမ်းဆည်းမည်",
- payments:["လက်ငင်းသီးသန့်","MMQR","KPay","WaveMoney","AYA Pay","TrueMoney"],
- deliveries:["မရှိပါ","FoodPanda","Grab","Door2Door","ကိုယ်ပိုင်ပို့"]
-},
-en:{
- gps:"Get GPS",
- collector:"Collector ID",
- biz:"Business Info",
- pay:"Payment",
- del:"Delivery",
- save:"Save Data",
- payments:["Cash Only","MMQR","KPay","WaveMoney","AYA Pay","TrueMoney"],
- deliveries:["None","FoodPanda","Grab","Door2Door","Own Delivery"]
-}
-};
+        function updateSubCats() {
+            const main = document.getElementById('cat-main').value;
+            const sub = document.getElementById('cat-sub');
+            const list = categories[currentLang][main] || [];
+            sub.innerHTML = list.map(c => `<option value="${c}">${c}</option>`).join('');
+            checkOtherStatus();
+        }
 
-const categories={
-mm:{
-"စားသောက်ကုန်":["စားသောက်ဆိုင်","လက်ဖက်ရည်ဆိုင်","လမ်းဘေး","မုန့်တိုက်","ဘား/KTV","အခြား"],
-"အရောင်းဆိုင်":["ကုန်စုံ","မီနီမတ်","အဝတ်အထည်","ဖုန်းဆိုင်","ဆေးဆိုင်","အခြား"],
-"ဝန်ဆောင်မှု":["ဆံပင်ညပ်","အဝတ်လျှော်","ပြင်ဆင်ရေး","မိတ္တူ","အပ်ချုပ်","ဆေးခန်း","အခြား"],
-"ရွှေ/ငွေကြေး":["ရွှေဆိုင်","ပန်းထိမ်","မိုဘိုင်းငွေ","ငွေလဲ","အခြား"],
-"ဆောက်လုပ်ရေး":["ဟာ့ဒ်ဝဲ","ဆေးသုတ်","လျှပ်စစ်","ရေသွယ်","အခြား"]
-},
-en:{
-"Food & Beverage":["Restaurant","Tea Shop","Street Food","Bakery","Bar/KTV","Other"],
-"Retail":["Grocery","Mini Mart","Clothing","Phone Shop","Pharmacy","Other"],
-"Services":["Salon","Laundry","Repair","Printing","Tailor","Clinic","Other"],
-"Finance & Gold":["Gold Shop","Goldsmith","Mobile Money","Exchange","Other"],
-"Construction":["Hardware","Paint","Electrical","Plumbing","Other"]
-}
-};
+        function checkOtherStatus() {
+            const sub = document.getElementById('cat-sub').value;
+            const box = document.getElementById('other-cat-box');
+            // Support both English and Burmese check
+            if (sub === "Other" || sub === "အခြား") {
+                box.classList.remove('hidden-el');
+            } else {
+                box.classList.add('hidden-el');
+            }
+        }
 
-let lang="mm",paySet=new Set(),delSet=new Set();
+        function initMaps() {
+            mainMap = L.map('main-map').setView([16.8409, 96.1735], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mainMap);
+            mainMarker = L.marker([16.8409, 96.1735], { draggable: true }).addTo(mainMap);
+            mainMarker.on('dragend', () => syncCoords(mainMarker.getLatLng()));
+            mainMap.on('click', (e) => { mainMarker.setLatLng(e.latlng); syncCoords(e.latlng); });
+            refreshGPS();
+        }
 
-function updateLang(){
-lang=document.getElementById('lang').value;
-lang_used.value=lang;
-document.querySelectorAll('[data-t]').forEach(e=>e.innerText=dict[lang][e.dataset.t]);
-initCats(); renderChips();
-}
+        function syncCoords(latlng) {
+            document.getElementById('inp-lat').value = latlng.lat.toFixed(6);
+            document.getElementById('inp-lng').value = latlng.lng.toFixed(6);
+            document.getElementById('coords-display').innerText = `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
+        }
 
-function initCats(){
-mainCat.innerHTML=Object.keys(categories[lang]).map(c=>`<option>${c}</option>`).join('');
-updateSub();
-}
+        function refreshGPS() {
+            navigator.geolocation.getCurrentPosition(p => {
+                const ll = [p.coords.latitude, p.coords.longitude];
+                mainMap.setView(ll, 17);
+                mainMarker.setLatLng(ll);
+                syncCoords({lat: ll[0], lng: ll[1]});
+            }, null, { enableHighAccuracy: true });
+        }
 
-function updateSub(){
-subCat.innerHTML=categories[lang][mainCat.value].map(s=>`<option>${s}</option>`).join('');
-toggleOther();
-}
+        function prepareReview() {
+            const nameField = document.getElementById('shop_name');
+            if (!nameField.value.trim()) {
+                nameField.scrollIntoView({ behavior: 'smooth' });
+                return nameField.classList.add('border-red-500');
+            }
+            nameField.classList.remove('border-red-500');
 
-function toggleOther(){
-otherCat.classList.toggle('hidden',subCat.value!=="Other"&&subCat.value!=="အခြား");
-}
+            const form = document.getElementById('collector-form');
+            const data = new FormData(form);
+            const list = document.getElementById('review-list');
+            
+            const subValue = data.get('category_sub');
+            const otherVal = data.get('other_category');
+            const finalType = (subValue === "Other" || subValue === "အခြား") ? 
+                            `Other: ${otherVal || 'Not specified'}` : 
+                            `${data.get('category_main')} > ${subValue}`;
 
-function renderChips(){
-chips('pay',dict[lang].payments,paySet,'payVal');
-chips('delivery',dict[lang].deliveries,delSet,'delVal');
-}
+            const summary = [
+                ["Shop", data.get('shop_name')],
+                ["Business", finalType],
+                ["Digital", data.get('digital_pay') || "None"],
+                ["Delivery", data.get('delivery_apps') || "None"],
+                ["Location", `${data.get('lat')}, ${data.get('lng')}`]
+            ];
 
-function chips(id,list,set,hidden){
-document.getElementById(id).innerHTML=list.map(v=>
-`<div class="chip ${set.has(v)?'active':''}"
- onclick="set.has('${v}')?set.delete('${v}'):set.add('${v}');
- document.getElementById('${hidden}').value=[...set].join(',');
- this.classList.toggle('active')">${v}</div>`).join('');
-}
+            list.innerHTML = summary.map(([k,v]) => `
+                <div class="bg-white p-3 rounded-2xl border border-slate-100 flex flex-col gap-1">
+                    <span class="text-[9px] font-black text-indigo-400 uppercase tracking-tighter">${k}</span>
+                    <span class="text-xs font-bold text-slate-800">${v}</span>
+                </div>
+            `).join('');
 
-function getGPS(){
-navigator.geolocation.getCurrentPosition(p=>{
-lat.value=p.coords.latitude.toFixed(6);
-lng.value=p.coords.longitude.toFixed(6);
-coords.innerText=`${lat.value}, ${lng.value}`;
-marker.setLatLng([lat.value,lng.value]); map.setView([lat.value,lng.value],17);
-},()=>alert("GPS unavailable"));
-}
+            document.getElementById('modal').classList.remove('hidden-el');
+            document.body.classList.add('modal-open');
 
-async function submitData(){
-if((subCat.value==="Other"||subCat.value==="အခြား")&&!otherCat.value){
-alert("Please specify other category"); return;
-}
-const data=Object.fromEntries(new FormData(form));
-data.timestamp=new Date().toISOString();
-await fetch(API_URL+"?"+new URLSearchParams(data),{mode:'no-cors'});
-alert(lang==="mm"?"သိမ်းဆည်းပြီးပါပြီ":"Saved successfully");
-form.reset();paySet.clear();delSet.clear();renderChips();
-}
+            const lat = parseFloat(data.get('lat')) || 16.8409;
+            const lng = parseFloat(data.get('lng')) || 96.1735;
+            setTimeout(() => {
+                if (!reviewMap) {
+                    reviewMap = L.map('review-map', { zoomControl: false, attributionControl: false }).setView([lat, lng], 17);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(reviewMap);
+                    reviewMarker = L.marker([lat, lng]).addTo(reviewMap);
+                } else {
+                    reviewMap.setView([lat, lng], 17);
+                    reviewMarker.setLatLng([lat, lng]);
+                    reviewMap.invalidateSize();
+                }
+            }, 150);
+        }
 
-const map=L.map('map').setView([16.84,96.17],13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-const marker=L.marker([16.84,96.17],{draggable:true}).addTo(map);
-marker.on('dragend',()=>{const p=marker.getLatLng();lat.value=p.lat;lng.value=p.lng;coords.innerText=`${p.lat},${p.lng}`});
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden-el');
+            document.body.classList.remove('modal-open');
+        }
 
-lang.onchange=updateLang;
-mainCat.onchange=updateSub;
-subCat.onchange=toggleOther;
+        async function performSubmit() {
+            const btn = document.getElementById('submit-final');
+            const btnText = document.getElementById('btn-text');
+            
+            btn.disabled = true;
+            btnText.innerHTML = `<div class="loader mx-auto"></div>`;
 
-updateLang();
-lucide.createIcons();
-</script>
+            const formEl = document.getElementById('collector-form');
+            const data = Object.fromEntries(new FormData(formEl).entries());
+            data.timestamp = new Date().toLocaleString();
+
+            const queryParams = new URLSearchParams(data).toString();
+
+            try {
+                // Using GET for Apps Script compatibility (bypassing CORS issues)
+                await fetch(`${API_URL}?${queryParams}`, { 
+                    method: 'GET', 
+                    mode: 'no-cors',
+                    cache: 'no-cache'
+                });
+                
+                // Cleanup and success feedback
+                closeModal();
+                document.getElementById('toast').classList.remove('hidden-el');
+                formEl.reset();
+                selectedPay.clear();
+                selectedDelivery.clear();
+                
+                setTimeout(() => {
+                    document.getElementById('toast').classList.add('hidden-el');
+                    updateUI();
+                }, 3000);
+            } catch (e) {
+                console.error("Submission error:", e);
+                alert("Submission failed. Check your internet connection.");
+            } finally {
+                btn.disabled = false;
+                btnText.innerText = "Confirm & Save";
+            }
+        }
+
+        document.getElementById('cat-main').addEventListener('change', updateSubCats);
+        document.getElementById('cat-sub').addEventListener('change', checkOtherStatus);
+        document.getElementById('lang-switch').addEventListener('change', (e) => {
+            currentLang = e.target.value;
+            updateUI();
+        });
+
+        window.onload = () => { initMaps(); updateUI(); };
+    </script>
 </body>
 </html>
