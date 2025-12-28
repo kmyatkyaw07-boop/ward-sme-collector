@@ -37,7 +37,6 @@
 
     <main class="max-w-md mx-auto p-4 space-y-4">
         
-        <!-- Map Control -->
         <section class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
             <div id="main-map"></div>
             <div class="p-3 bg-white flex justify-between items-center">
@@ -48,16 +47,13 @@
             </div>
         </section>
 
-        <!-- Main Form -->
         <form id="collector-form" class="space-y-4">
             <input type="hidden" name="lat" id="inp-lat">
             <input type="hidden" name="lng" id="inp-lng">
             <input type="hidden" name="digital_pay" id="inp-pay">
             <input type="hidden" name="delivery_apps" id="inp-delivery">
-            <!-- New Hidden Language Input -->
             <input type="hidden" name="lang_used" id="inp-lang-used" value="mm">
 
-            <!-- Core Business Info -->
             <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-4">
                 <h3 class="text-xs font-black text-indigo-900 uppercase tracking-widest border-b pb-2 flex items-center gap-2">
                     <i data-lucide="info" class="w-4 h-4 text-amber-500"></i> Core Business Info
@@ -65,7 +61,7 @@
                 
                 <div>
                     <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelName">Shop Name</label>
-                    <input type="text" name="shop_name" id="shop_name" required placeholder="Enter shop name..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    <input type="text" name="shop_name" id="shop_name" required placeholder="..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                 </div>
 
                 <div class="space-y-3">
@@ -77,70 +73,71 @@
                         <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelSubCategory">Specific Sub-type</label>
                         <select id="cat-sub" name="category_sub" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"></select>
                     </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelOpenHour">Open Time</label>
+                            <select id="open-hour" name="open_hour" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"></select>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelCloseHour">Close Time</label>
+                            <select id="close-hour" name="close_hour" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"></select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelPeakHour">Peak Hour</label>
+                        <select id="peak-hour" name="peak_hour" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"></select>
+                    </div>
+
                     <div id="other-cat-box" class="hidden-el animate-pulse">
                         <label class="text-[11px] font-bold text-indigo-500 mb-1 block">Specify Other Category</label>
-                        <input type="text" name="other_category" id="other_category_input" placeholder="Please specify..." class="w-full p-3 bg-indigo-50 border border-indigo-200 rounded-2xl outline-none text-sm">
+                        <input type="text" name="other_category" id="other_category_input" placeholder="..." class="w-full p-3 bg-indigo-50 border border-indigo-200 rounded-2xl outline-none text-sm">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Staff Size</label>
-                        <select name="staff_size" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
-                            <option value="1-2">1-2 (Self/Family)</option>
-                            <option value="3-5">3-5 (Micro)</option>
-                            <option value="6-15">6-15 (Small)</option>
-                            <option value="16+">16+ (Medium)</option>
-                        </select>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelStaffSize">Staff Size</label>
+                        <select id="staff-size" name="staff_size" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"></select>
                     </div>
                     <div>
-                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Price Tier</label>
-                        <select name="price_tier" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
-                            <option value="Budget">Economic</option>
-                            <option value="Standard">Standard</option>
-                            <option value="Premium">Premium</option>
-                        </select>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelPriceTier">Price Tier</label>
+                        <select id="price-tier" name="price_tier" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"></select>
                     </div>
                 </div>
             </div>
 
-            <!-- Digital Maturity -->
             <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-4">
                 <h3 class="text-xs font-black text-indigo-900 uppercase tracking-widest border-b pb-2 flex items-center gap-2">
                     <i data-lucide="smartphone" class="w-4 h-4 text-blue-500"></i> Digital Presence
                 </h3>
                 <div>
-                    <label class="text-[11px] font-bold text-slate-500 mb-2 block">Accepted Payments</label>
+                    <label class="text-[11px] font-bold text-slate-500 mb-2 block" data-lang="labelPayment">Accepted Payments</label>
                     <div class="flex flex-wrap gap-2" id="pay-chips"></div>
                 </div>
                 <div>
-                    <label class="text-[11px] font-bold text-slate-500 mb-2 block">Delivery Platforms</label>
+                    <label class="text-[11px] font-bold text-slate-500 mb-2 block" data-lang="labelDelivery">Delivery Platforms</label>
                     <div class="flex flex-wrap gap-2" id="delivery-chips"></div>
                 </div>
             </div>
 
-            <!-- Analysis Section -->
             <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-4">
                 <h3 class="text-xs font-black text-indigo-900 uppercase tracking-widest border-b pb-2 flex items-center gap-2">
                     <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-500"></i> Local Insights
                 </h3>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Nearby Competition</label>
-                        <select name="competition" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
-                            <option value="None">Isolated</option>
-                            <option value="Moderate">Moderate (1-3)</option>
-                            <option value="High">Clustered (4+)</option>
-                        </select>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelCompetition">Competition</label>
+                        <select id="comp-level" name="competition" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"></select>
                     </div>
                     <div>
-                        <label class="text-[11px] font-bold text-slate-500 mb-1 block">Foot Traffic</label>
-                        <select name="traffic" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
-                            <option value="Low">Low/Quiet</option>
-                            <option value="Med">Medium</option>
-                            <option value="High">Busy Street</option>
-                        </select>
+                        <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelTraffic">Foot Traffic</label>
+                        <select id="traffic-level" name="traffic" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"></select>
                     </div>
+                </div>
+                <div class="mt-4">
+                    <label class="text-[11px] font-bold text-slate-500 mb-1 block" data-lang="labelRemark">Remarks / Outstanding Features</label>
+                    <textarea name="remarks" id="remarks" rows="3" placeholder="..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"></textarea>
                 </div>
             </div>
 
@@ -150,7 +147,6 @@
         </form>
     </main>
 
-    <!-- Review Modal -->
     <div id="modal" class="hidden-el fixed inset-0 z-[2000] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeModal()"></div>
         <div class="relative bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
@@ -170,60 +166,73 @@
         </div>
     </div>
 
-    <!-- Success Feedback -->
     <div id="toast" class="hidden-el fixed top-10 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-8 py-4 rounded-full shadow-2xl font-bold z-[3000] flex items-center gap-3">
         <i data-lucide="check-circle-2"></i> Record Stored Successfully
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyQGdDzd_mUtoLxIrTszLA6LgUqgEuJ0E3kPoEYJ3bAbuqmfsrFVW_OpKlyiMsYT84MsA/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbzpqvj84pMMw2jERxW1rBKY-YROtIjOjTOctrbYfFK6vSdRaxhK-xE01igd5tZ_DKg2bA/exec";
         
         const categories = {
             en: {
-                "Food & Beverage": ["Restaurant", "Cafe/Tea Shop", "Street Food Vendor", "Bar/KTV", "Bakery/Confectionery", "Other"],
-                "Retail & Wholesale": ["Grocery Store", "Mobile/Electronics", "Clothing/Fashion", "Pharmacy", "Wholesale Store", "Cosmetics Shop", "Other"],
-                "Services": ["Barber/Salon", "Laundry", "Auto/Bike Repair", "Printing/Xerox", "Tailoring", "Clinic", "Delivery/Logistics", "Other"],
-                "Value & Luxury": ["Gold/Jewelry", "Goldsmith (Nawali)", "Money Exchange", "Mobile Money Agent", "Other"],
+                "Food & Beverage": ["Restaurant", "Cafe/Tea Shop", "Rice/Salad Shop", "Mohinga/Noodle Shop", "Street Food", "Bakery", "Bar/KTV", "Other"],
+                "Retail & Wholesale": ["Grocery/Store", "Betel Nut Shop", "Mobile/Electronics", "Cosmetics Shop", "Baby Equipment", "Wholesale", "Other"],
+                "Fashion & Beauty": ["Clothing (Ladies)", "Clothing (Men)", "Tailoring Shop", "Barber/Beauty Salon", "Nail Art/Spa", "Fitness/Gym", "Other"],
+                "Services & Tech": ["Bank/Financial", "Mobile Money Agent", "Typing/Xerox/Printing", "Photo Studio", "Electrical/Aircon Repair", "Laundry", "Other"],
+                "Health": ["Clinic", "Pharmacy", "Dental Clinic", "Other"],
+                "Gold & Jewelry": ["Gold Shop", "Goldsmith", "Money Exchange", "Other"],
+                "Automotive": ["Car/Bike Workshop", "Spare Parts Shop", "Car Wash/Polishing", "Other"],
                 "Other Business": ["Educational/Tuition", "Travel/Ticket", "Internet Cafe", "Construction Materials", "Other"]
             },
             mm: {
-                "စားသောက်ကုန်": ["စားသောက်ဆိုင်", "ကော်ဖီ/လက်ဖက်ရည်ဆိုင်", "လမ်းဘေးဆိုင်", "ဘား/KTV", "မုန့်တိုက်", "အခြား"],
-                "အရောင်းဆိုင်": ["ကုန်စုံဆိုင်", "ဖုန်း/အီလက်ထရောနစ်", "အဝတ်အထည်", "ဆေးဆိုင်", "လက်ကားဆိုင်", "အလှကုန်ဆိုင်", "အခြား"],
-                "ဝန်ဆောင်မှု": ["ဆံပင်ညပ်/အလှပြင်", "အဝတ်လျှော်", "ကား/ဆိုင်ကယ်ပြင်", "မိတ္တူ/ပုံနှိပ်", "အပ်ချုပ်ဆိုင်", "ဆေးခန်း", "ပို့ဆောင်ရေး", "အခြား"],
-                "ရွှေနှင့်ငွေကြေး": ["ရွှေဆိုင်", "ပန်းထိမ်လုပ်ငန်း", "ငွေလဲလုပ်ငန်း", "မိုဘိုင်းငွေလွှဲကိုယ်စားလှယ်", "အခြား"],
+                "စားသောက်ကုန်": ["စားသောက်ဆိုင်", "ကော်ဖီ/လက်ဖက်ရည်ဆိုင်", "ထမင်းဆိုင်/သုပ်ဆိုင်", "မုန့်ဟင်းခါး/ခေါက်ဆွဲဆိုင်", "လမ်းဘေးဆိုင်", "မုန့်တိုက်", "ဘား/KTV", "အခြား"],
+                "အရောင်းဆိုင်": ["ကုန်စုံဆိုင်/စတိုးဆိုင်", "ကွမ်းယာဆိုင်", "ဖုန်း/အီလက်ထရောနစ်", "အလှကုန်ဆိုင်", "ကလေးပစ္စည်းအရောင်းဆိုင်", "လက်ကားဆိုင်", "အခြား"],
+                "ဖက်ရှင်နှင့်အလှအပ": ["အဝတ်အထည် (အမျိုးသမီး)", "အဝတ်အထည် (အမျိုးသား)", "အပ်ချုပ်ဆိုင်", "ဆံပင်ညပ်/အလှပြင်ဆိုင်", "လက်သည်းအလှပြင် (Nail Art)", "အားကစားနှင့် Fitness", "အခြား"],
+                "ဝန်ဆောင်မှုနှင့်နည်းပညာ": ["ဘဏ်/ငွေကြေးဝန်ဆောင်မှု", "မိုဘိုင်းငွေလွှဲကိုယ်စားလှယ်", "စာစီစာရိုက်/မိတ္တူ/ပုံနှိပ်", "ဓာတ်ပုံစတူဒီယို", "လျှပ်စစ်/အဲကွန်းပြုပြင်ရေး", "အဝတ်လျှော်လုပ်ငန်း", "အခြား"],
+                "ကျန်းမာရေး": ["ဆေးခန်း", "ဆေးဆိုင်", "သွားနှင့်ခံတွင်း", "အခြား"],
+                "ရွှေနှင့်ရတနာ": ["ရွှေဆိုင်", "ပန်းထိမ်လုပ်ငန်း", "ငွေလဲလုပ်ငန်း", "အခြား"],
+                "မော်တော်ယာဉ်": ["ကား/ဆိုင်ကယ်ဝပ်ရှော့", "အပိုပစ္စည်းအရောင်းဆိုင်", "ကားရေဆေး/အရောင်တင်", "အခြား"],
                 "အခြားလုပ်ငန်း": ["ကျူရှင်/ပညာရေး", "ခရီးသွား/လက်မှတ်", "အင်တာနက်ကဖေး", "ဆောက်လုပ်ရေးပစ္စည်း", "အခြား"]
             }
         };
 
         const config = {
             en: {
-                payment: ["MMQR", "Kpay", "AYA Pay", "WaveMoney", "True Money", "Cash Only"],
+                payment: ["MMQR", "Kpay", "WavePay", "AYA Pay", "CB Pay", "Cash Only"],
                 delivery: ["FoodPanda", "Grab", "Door2Door", "Own Delivery", "None"],
                 peakHours: ["Morning", "Noon", "Afternoon", "Evening", "Night", "All Day"],
+                staffSize: ["1-2 (Small)", "3-5 (Medium)", "5+ (Large)"],
+                priceTier: ["Economic", "Standard", "Premium"],
+                competition: ["Isolated", "Moderate (1-3)", "Clustered (4+)"],
+                traffic: ["Low/Quiet", "Medium", "Busy/Crowded"],
                 labels: {
-                    syncGps: "Locate Me",
-                    labelName: "Shop Name",
-                    labelCategory: "Category Group",
-                    labelSubCategory: "Specific Business",
-                    labelOpenHour: "Open Time",
-                    labelCloseHour: "Close Time",
-                    labelPeakHour: "Peak Hour",
+                    syncGps: "Locate Me", labelName: "Shop Name", labelCategory: "Main Category",
+                    labelSubCategory: "Specific Sub-type", labelOpenHour: "Open Time",
+                    labelCloseHour: "Close Time", labelPeakHour: "Peak Hour",
+                    labelStaffSize: "Staff Size", labelPriceTier: "Price Tier",
+                    labelPayment: "Accepted Payments", labelDelivery: "Delivery Platforms",
+                    labelCompetition: "Nearby Competition", labelTraffic: "Foot Traffic",
+                    labelRemark: "Remarks / Outstanding Features",
                     btnReview: "Review & Store Data"
                 }
             },
             mm: {
-                payment: ["MMQR", "Kpay", "AYA Pay", "WaveMoney", "True Money", "ငွေသားသီးသန့်"],
+                payment: ["MMQR", "Kpay", "WavePay", "AYA Pay", "CB Pay", "ငွေသားသီးသန့်"],
                 delivery: ["FoodPanda", "Grab", "Door2Door", "ကိုယ်ပိုင်ပို့ဆောင်ရေး", "မရှိပါ"],
                 peakHours: ["မနက်ပိုင်း", "မွန်းတည့်ပိုင်း", "နေ့လည်ပိုင်း", "ညနေပိုင်း", "ညပိုင်း", "တစ်နေကုန်"],
+                staffSize: ["အသေးစား (၁-၂ ဦး)", "အလတ်စား (၃-၅ ဦး)", "အကြီးစား (၅ ဦးနှင့်အထက်)"],
+                priceTier: ["ဈေးနှုန်းချိုသာ", "အသင့်အတင့်", "အဆင့်မြင့်"],
+                competition: ["မရှိသလောက်", "အသင့်အတင့် (၁-၃ ဆိုင်)", "များပြား (၄ ဆိုင်အထက်)"],
+                traffic: ["နည်းပါး/တိတ်ဆိတ်", "အသင့်အတင့်", "စည်ကား/လူများ"],
                 labels: {
-                    syncGps: "တည်နေရာယူမည်",
-                    labelName: "ဆိုင်အမည်",
-                    labelCategory: "အဓိကအမျိုးအစား",
-                    labelSubCategory: "လုပ်ငန်းအမျိုးအစား",
-                    labelOpenHour: "ဖွင့်ချိန်",
-                    labelCloseHour: "ပိတ်ချိန်",
-                    labelPeakHour: "လူအစည်ဆုံးအချိန်",
+                    syncGps: "တည်နေရာယူမည်", labelName: "ဆိုင်အမည်", labelCategory: "အဓိကအမျိုးအစား",
+                    labelSubCategory: "လုပ်ငန်းအမျိုးအစား", labelOpenHour: "ဖွင့်ချိန်",
+                    labelCloseHour: "ပိတ်ချိန်", labelPeakHour: "လူအစည်ဆုံးအချိန်",
+                    labelStaffSize: "ဝန်ထမ်းအင်အား", labelPriceTier: "ဈေးနှုန်းအဆင့်",
+                    labelPayment: "လက်ခံသည့် ငွေပေးချေမှု", labelDelivery: "ပို့ဆောင်ရေး ဝန်ဆောင်မှု",
+                    labelCompetition: "အနီးအနားရှိ ပြိုင်ဘက်ဆိုင်", labelTraffic: "လူသွားလူလာ",
+                    labelRemark: "ထူးခြားချက် သို့မဟုတ် မှတ်ချက် (စိတ်ကြိုက်)",
                     btnReview: "စစ်ဆေးပြီး သိမ်းဆည်းမည်"
                 }
             }
@@ -237,14 +246,30 @@
         function updateUI() {
             const langData = config[currentLang];
             document.getElementById('inp-lang-used').value = currentLang;
-            
             document.querySelectorAll('[data-lang]').forEach(el => {
                 el.innerText = langData.labels[el.getAttribute('data-lang')];
             });
 
+            // Populate Dropdowns
             const catMain = document.getElementById('cat-main');
             catMain.innerHTML = Object.keys(categories[currentLang]).map(c => `<option value="${c}">${c}</option>`).join('');
-            
+            document.getElementById('staff-size').innerHTML = langData.staffSize.map(s => `<option value="${s}">${s}</option>`).join('');
+            document.getElementById('price-tier').innerHTML = langData.priceTier.map(p => `<option value="${p}">${p}</option>`).join('');
+            document.getElementById('comp-level').innerHTML = langData.competition.map(c => `<option value="${c}">${c}</option>`).join('');
+            document.getElementById('traffic-level').innerHTML = langData.traffic.map(t => `<option value="${t}">${t}</option>`).join('');
+            document.getElementById('peak-hour').innerHTML = langData.peakHours.map(p => `<option value="${p}">${p}</option>`).join('');
+
+            // Time Selects
+            const hoursHtml = Array.from({length: 24}, (_, i) => {
+                const h = i % 12 || 12;
+                const ampm = i < 12 ? 'AM' : 'PM';
+                const val = `${h}:00 ${ampm}`;
+                return `<option value="${val}">${val}</option>`;
+            }).join('');
+            document.getElementById('open-hour').innerHTML = hoursHtml;
+            document.getElementById('close-hour').innerHTML = hoursHtml;
+            document.getElementById('close-hour').value = "10:00 PM";
+
             renderChips('pay-chips', langData.payment, selectedPay, 'inp-pay');
             renderChips('delivery-chips', langData.delivery, selectedDelivery, 'inp-delivery');
             
@@ -279,12 +304,8 @@
         function checkOtherStatus() {
             const sub = document.getElementById('cat-sub').value;
             const box = document.getElementById('other-cat-box');
-            // Support both English and Burmese check
-            if (sub === "Other" || sub === "အခြား") {
-                box.classList.remove('hidden-el');
-            } else {
-                box.classList.add('hidden-el');
-            }
+            if (sub === "Other" || sub === "အခြား") box.classList.remove('hidden-el');
+            else box.classList.add('hidden-el');
         }
 
         function initMaps() {
@@ -313,10 +334,7 @@
 
         function prepareReview() {
             const nameField = document.getElementById('shop_name');
-            if (!nameField.value.trim()) {
-                nameField.scrollIntoView({ behavior: 'smooth' });
-                return nameField.classList.add('border-red-500');
-            }
+            if (!nameField.value.trim()) return nameField.classList.add('border-red-500');
             nameField.classList.remove('border-red-500');
 
             const form = document.getElementById('collector-form');
@@ -325,15 +343,14 @@
             
             const subValue = data.get('category_sub');
             const otherVal = data.get('other_category');
-            const finalType = (subValue === "Other" || subValue === "အခြား") ? 
-                            `Other: ${otherVal || 'Not specified'}` : 
-                            `${data.get('category_main')} > ${subValue}`;
+            const finalType = (subValue === "Other" || subValue === "အခြား") ? `Other: ${otherVal}` : `${data.get('category_main')} > ${subValue}`;
 
             const summary = [
                 ["Shop", data.get('shop_name')],
                 ["Business", finalType],
-                ["Digital", data.get('digital_pay') || "None"],
-                ["Delivery", data.get('delivery_apps') || "None"],
+                ["Hours", `${data.get('open_hour')} - ${data.get('close_hour')} (Peak: ${data.get('peak_hour')})`],
+                ["Scale", `${data.get('staff_size')} / ${data.get('price_tier')}`],
+                ["Remark", data.get('remarks') || "-"],
                 ["Location", `${data.get('lat')}, ${data.get('lng')}`]
             ];
 
@@ -346,7 +363,6 @@
 
             document.getElementById('modal').classList.remove('hidden-el');
             document.body.classList.add('modal-open');
-
             const lat = parseFloat(data.get('lat')) || 16.8409;
             const lng = parseFloat(data.get('lng')) || 96.1735;
             setTimeout(() => {
@@ -370,42 +386,21 @@
         async function performSubmit() {
             const btn = document.getElementById('submit-final');
             const btnText = document.getElementById('btn-text');
-            
             btn.disabled = true;
             btnText.innerHTML = `<div class="loader mx-auto"></div>`;
-
             const formEl = document.getElementById('collector-form');
             const data = Object.fromEntries(new FormData(formEl).entries());
             data.timestamp = new Date().toISOString();
-
             const queryParams = new URLSearchParams(data).toString();
-
             try {
-                // Using GET for Apps Script compatibility (bypassing CORS issues)
-                await fetch(`${API_URL}?${queryParams}`, { 
-                    method: 'GET', 
-                    mode: 'no-cors',
-                    cache: 'no-cache'
-                });
-                
-                // Cleanup and success feedback
+                await fetch(`${API_URL}?${queryParams}`, { method: 'GET', mode: 'no-cors' });
                 closeModal();
                 document.getElementById('toast').classList.remove('hidden-el');
                 formEl.reset();
-                selectedPay.clear();
-                selectedDelivery.clear();
-                
-                setTimeout(() => {
-                    document.getElementById('toast').classList.add('hidden-el');
-                    updateUI();
-                }, 3000);
-            } catch (e) {
-                console.error("Submission error:", e);
-                alert("Submission failed. Check your internet connection.");
-            } finally {
-                btn.disabled = false;
-                btnText.innerText = "Confirm & Save";
-            }
+                selectedPay.clear(); selectedDelivery.clear();
+                setTimeout(() => { document.getElementById('toast').classList.add('hidden-el'); updateUI(); }, 3000);
+            } catch (e) { alert("Submission failed."); } 
+            finally { btn.disabled = false; btnText.innerText = "Confirm & Save"; }
         }
 
         document.getElementById('cat-main').addEventListener('change', updateSubCats);
