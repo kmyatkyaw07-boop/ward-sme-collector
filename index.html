@@ -209,7 +209,7 @@
                 }
             },
             mm: {
-                payment: ["MMQR", "Kpay", "AYA Pay", "WaveMoney", "True Money", "လက်ငင်းသီးသန့်"],
+                payment: ["MMQR", "Kpay", "AYA Pay", "WaveMoney", "True Money", "ငွေသားသီးသန့်"],
                 delivery: ["FoodPanda", "Grab", "Door2Door", "ကိုယ်ပိုင်ပို့ဆောင်ရေး", "မရှိပါ"],
                 labels: {
                     syncGps: "တည်နေရာယူမည်",
@@ -368,7 +368,7 @@
 
             const formEl = document.getElementById('collector-form');
             const data = Object.fromEntries(new FormData(formEl).entries());
-            data.timestamp = new Date().toLocaleString();
+            data.timestamp = new Date().toISOString();
 
             const queryParams = new URLSearchParams(data).toString();
 
