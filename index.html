@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SME Map Collector</title>
+    <title>SME Map Collector - Kyaukmyaung</title>
     
     <!-- Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,11 +14,13 @@
         @import url('https://fonts.googleapis.com/css2?family=Pyidaungsu:wght@400;700&display=swap');
         
         :root { font-family: 'Inter', 'Pyidaungsu', sans-serif; }
-        #map { height: 220px; width: 100%; border-radius: 1rem; z-index: 10; }
+        #map { height: 200px; width: 100%; border-radius: 1rem; z-index: 10; }
         .loader { border-top-color: #ffffff; animation: spinner 1s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         input, select, textarea { font-size: 16px !important; }
         .hidden-el { display: none; }
+        .service-chip { transition: all 0.2s; cursor: pointer; }
+        .service-chip.active { background-color: #312e81; color: white; border-color: #312e81; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-20 touch-manipulation">
@@ -26,10 +28,10 @@
     <header class="bg-indigo-900 text-white p-4 shadow-lg sticky top-0 z-[1000]">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <h1 class="text-lg font-bold flex items-center gap-2">
-                <i data-lucide="map"></i> <span data-lang="appTitle">Ward Map Engine</span>
+                <i data-lucide="map-pin"></i> <span data-lang="appTitle">Kyaukmyaung Engine</span>
             </h1>
             <div class="flex items-center gap-3">
-                <select id="lang-switch" class="bg-indigo-800 text-xs border-none rounded px-2 py-1 outline-none">
+                <select id="lang-switch" class="bg-indigo-800 text-xs border-none rounded px-2 py-1 outline-none text-white">
                     <option value="en">English</option>
                     <option value="mm">မြန်မာ</option>
                 </select>
@@ -44,13 +46,13 @@
         <section class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
             <div id="map"></div>
             <div class="p-3 grid grid-cols-2 gap-2 bg-slate-50">
-                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                <div class="bg-white p-2 rounded-lg border border-slate-200 text-center">
                     <span class="text-[9px] font-bold text-slate-400 block uppercase">Lat</span>
-                    <input type="number" id="lat" class="bg-transparent text-xs font-mono outline-none w-full" readonly>
+                    <input type="number" id="lat" class="bg-transparent text-xs font-mono outline-none w-full text-center" readonly>
                 </div>
-                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                <div class="bg-white p-2 rounded-lg border border-slate-200 text-center">
                     <span class="text-[9px] font-bold text-slate-400 block uppercase">Long</span>
-                    <input type="number" id="long" class="bg-transparent text-xs font-mono outline-none w-full" readonly>
+                    <input type="number" id="long" class="bg-transparent text-xs font-mono outline-none w-full text-center" readonly>
                 </div>
             </div>
             <button type="button" onclick="refreshGPS()" class="w-full py-3 text-indigo-700 text-[11px] font-bold uppercase flex items-center justify-center gap-2 hover:bg-indigo-50 border-t">
@@ -63,60 +65,76 @@
             <form id="data-form" class="space-y-4">
                 <input type="hidden" name="lat" id="form-lat">
                 <input type="hidden" name="long" id="form-long">
+                <input type="hidden" name="services" id="final-services">
                 
-                <div class="space-y-3">
+                <div class="space-y-4">
+                    <!-- Shop Name -->
                     <div>
                         <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelName">Shop Name</label>
                         <input type="text" name="name" id="shop-name-input" required placeholder="..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500">
                     </div>
 
-                    <!-- Category & Subcategory Selection -->
-                    <div class="space-y-3">
+                    <!-- Category & Subcategory -->
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelCategory">Main Category</label>
                             <select id="main-category-select" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
-                                <!-- Populated by JS -->
                             </select>
-                            <input type="text" id="other-main-input" placeholder="Enter main category..." class="hidden-el mt-2 w-full p-3 bg-white border border-indigo-300 rounded-xl outline-none text-sm focus:border-indigo-500">
                             <input type="hidden" name="category" id="final-category">
                         </div>
-
                         <div id="sub-category-wrapper">
                             <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelSubCategory">Sub Category</label>
                             <select id="sub-category-select" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
-                                <!-- Populated by JS -->
                             </select>
-                            <input type="text" id="other-sub-input" placeholder="Enter sub category..." class="hidden-el mt-2 w-full p-3 bg-white border border-indigo-300 rounded-xl outline-none text-sm focus:border-indigo-500">
                             <input type="hidden" name="subCategory" id="final-subcategory">
                         </div>
                     </div>
 
-                    <div>
-                        <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelScale">Scale</label>
-                        <select name="scale" id="scale-select" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
-                            <!-- Populated by JS -->
-                        </select>
+                    <!-- Service Checklist (Dynamic) -->
+                    <div id="checklist-container" class="space-y-2">
+                        <label class="text-[11px] font-bold text-slate-500 uppercase block" data-lang="labelServices">Available Services</label>
+                        <div id="services-grid" class="flex flex-wrap gap-2">
+                            <!-- Chips injected here -->
+                        </div>
                     </div>
-                </div>
 
-                <div class="grid grid-cols-2 gap-3 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
-                    <div>
-                        <label class="text-[10px] font-bold text-indigo-700 uppercase block mb-1" data-lang="labelDigital">Digital Pay?</label>
-                        <select name="digitalPayment" id="digital-select" class="w-full p-2 text-xs rounded border bg-white font-bold">
-                            <!-- Populated by JS -->
-                        </select>
+                    <!-- Detail Info Collection -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelHours">Opening Hours</label>
+                            <input type="text" name="openingHours" placeholder="e.g. 9am - 9pm" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelPeak">Peak Hours</label>
+                            <select name="peakTime" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
+                                <option value="Morning">Morning</option>
+                                <option value="Afternoon">Afternoon</option>
+                                <option value="Evening">Evening/Night</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-indigo-700 uppercase block mb-1" data-lang="labelTraffic">Traffic</label>
-                        <select name="traffic" id="traffic-select" class="w-full p-2 text-xs rounded border bg-white font-bold">
-                            <!-- Populated by JS -->
-                        </select>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelTarget">Target Customer</label>
+                            <select name="target" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
+                                <option value="Residents">Local Residents</option>
+                                <option value="Workers">Office Workers</option>
+                                <option value="Students">Students</option>
+                                <option value="General">General Public</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelTraffic">Traffic</label>
+                            <select name="traffic" id="traffic-select" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-bold">
+                            </select>
+                        </div>
                     </div>
                 </div>
 
                 <div>
-                    <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelRemark">Remarks</label>
-                    <textarea name="remark" id="remark-input" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[60px] text-sm"></textarea>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelRemark">Remarks / Special Feature</label>
+                    <textarea name="remark" id="remark-input" placeholder="Any unique features..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[60px] text-sm"></textarea>
                 </div>
 
                 <button type="submit" id="submit-btn" 
@@ -131,72 +149,94 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz0BqJueUYCfZ0CohSt7EVTWy8aDUXiFlgvLimKKuqdcIHSAC4K0wgZaKvai5TCAnqf1A/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwWtQRWZvhiADEKhmDrKocb3LT2qK7opcZDkBpibLsTh6m5huEX6bWrk3gCB4khtRcDjA/exec";
 
-        // Category data based on Myanmar Yellow Pages classifications
         const categoryData = {
             en: {
-                "Business Services": ["Advertising Agency", "Accounting & Audit", "Business Consultants", "Employment Agency", "Legal Consultants", "Real Estate Agents", "Trading Companies", "Logistics & Courier", "Translation Service", "Other"],
-                "Food & Beverage": ["Restaurants", "Rice & Curry Shop", "Noodle Shop", "Tea Shop", "Bakery & Confectionery", "Purified Water Supply", "Cafe", "Other"],
-                "Jewelry & Value": ["Gold Shop", "Gold Smith (Nawali)", "Gemstone & Jewelry", "Pawnbrokers", "Other"],
-                "Electronics & IT": ["Mobile Phone Shop", "Mobile Accessories", "Computer Shop", "Electronic Repairs", "Software Service", "Other"],
-                "Building & Construction": ["Construction Companies", "Interior Decorator", "Building Materials", "Electricians", "Paints & Glass", "Other"],
-                "Health & Beauty": ["Clinics", "Pharmacies", "Beauty Salon", "Spa & Wellness", "Other"],
-                "Automotive": ["Car Rental", "Auto Workshop", "Spare Parts", "Tyre Services", "Other"],
-                "Travel & Tourism": ["Travel Agency", "Hotels & Guesthouses", "Air Ticket Service", "Bus Express", "Other"],
-                "Other": ["Other"]
+                "Food & Beverage": {
+                    "Restaurant": ["Aircon", "Delivery", "Alcohol/Beer", "Outdoor Seating"],
+                    "Tea Shop": ["Snacks/Cake", "TV/Live Sport", "Breakfast Menu", "Fast Service"],
+                    "Street Food": ["Takeaway Only", "Morning Open", "Night Open", "Seating Available"]
+                },
+                "Health & Beauty": {
+                    "Beauty Salon": ["Hair Cut", "Nail Art", "Facial", "Spa/Massage"],
+                    "Tailoring": ["Design Consult", "Express Stitch", "Training Class", "Fabric Store"],
+                    "Pharmacy": ["Home Delivery", "Clinic Attached", "Counseling", "OTC Only"],
+                    "Fitness/Gym": ["Trainer", "Yoga", "Shower", "Supplements"]
+                },
+                "Jewelry & Value": {
+                    "Gold Shop": ["Buy/Sell", "Exchange", "Certified", "Repair"],
+                    "Goldsmith (Nawali)": ["Polishing", "Custom Mold", "Stone Setting", "Quick Fix"]
+                },
+                "Services": {
+                    "Banking/ATM": ["24hr ATM", "Deposit Machine", "Customer Service", "Currency Exchange"],
+                    "IT & Printing": ["Copy/Print", "Typing", "PC Repair", "Lamination"],
+                    "Maintenance": ["Aircon Service", "Fridge Repair", "Electrician", "Plumbing"]
+                }
             },
             mm: {
-                "စီးပွားရေးဝန်ဆောင်မှု": ["ကြော်ငြာအေဂျင်စီ", "စာရင်းကိုင်နှင့်စာရင်းစစ်", "စီးပွားရေးအတိုင်ပင်ခံ", "အလုပ်အကိုင်ရှာဖွေရေး", "ဥပဒေအတိုင်ပင်ခံ", "အိမ်ခြံမြေကိုယ်စားလှယ်", "ကုန်သွယ်မှုကုမ္ပဏီ", "ပို့ဆောင်ရေးနှင့်ချောပို့", "ဘာသာပြန်လုပ်ငန်း", "အခြား"],
-                "အစားအသောက်": ["စားသောက်ဆိုင်", "ထမင်းနှင့်ဟင်းဆိုင်", "မုန့်တီ/ခေါက်ဆွဲဆိုင်", "လက်ဖက်ရည်ဆိုင်", "မုန့်တိုက်", "ရေသန့်လုပ်ငန်း", "ကော်ဖီဆိုင်", "အခြား"],
-                "ရွှေနှင့်ရတနာ": ["ရွှေဆိုင်", "ရွှေနဝလီဆိုင်", "ကျောက်မျက်ရတနာ", "အပေါင်ဆိုင်", "အခြား"],
-                "လျှပ်စစ်နှင့်နည်းပညာ": ["ဖုန်းအရောင်းဆိုင်", "ဖုန်းအပိုပစ္စည်း", "ကွန်ပျူတာဆိုင်", "လျှပ်စစ်ပြင်ဆိုင်", "ဆော့ဖ်ဝဲလ်ဝန်ဆောင်မှု", "အခြား"],
-                "ဆောက်လုပ်ရေး": ["ဆောက်လုပ်ရေးကုမ္ပဏီ", "အတွင်းပိုင်းအလှဆင်", "ဆောက်လုပ်ရေးပစ္စည်း", "လျှပ်စစ်ကန်ထရိုက်တာ", "ဆေးနှင့်မှန်လုပ်ငန်း", "အခြား"],
-                "ကျန်းမာရေးနှင့်အလှအပ": ["ဆေးခန်း", "ဆေးဆိုင်", "အလှပြင်ဆိုင်", "စပါးနှင့်ကျန်းမာရေး", "အခြား"],
-                "မော်တော်ယာဉ်": ["ကားအငှားလုပ်ငန်း", "ဝပ်ရှော့", "အပိုပစ္စည်းအရောင်းဆိုင်", "တာယာဝန်ဆောင်မှု", "အခြား"],
-                "ခရီးသွားလာရေး": ["ခရီးသွားအေဂျင်စီ", "ဟိုတယ်နှင့်တည်းခိုခန်း", "လေယာဉ်လက်မှတ်အရောင်း", "အဝေးပြေးကားလက်မှတ်", "အခြား"],
-                "အခြား": ["အခြား"]
+                "အစားအသောက်": {
+                    "စားသောက်ဆိုင်": ["အဲကွန်း", "ပို့ဆောင်ရေး", "အရက်/ဘီယာ", "ပြင်ပထိုင်ခုံ"],
+                    "လက်ဖက်ရည်ဆိုင်": ["မုန့်မျိုးစုံ", "TV (ဘောလုံးပွဲ)", "နံနက်စာ", "အမြန်ဝန်ဆောင်မှု"],
+                    "လမ်းဘေးဆိုင်": ["ပါဆယ်သီးသန့်", "နံနက်ပိုင်းဖွင့်", "ညပိုင်းဖွင့်", "ထိုင်စားရနိုင်သည်"]
+                },
+                "ကျန်းမာရေးနှင့်အလှအပ": {
+                    "အလှပြင်ဆိုင်": ["ဆံပင်ညှပ်", "လက်သည်းခြေသည်း", "မျက်နှာပေါင်းတင်", "အနှိပ်/စပါး"],
+                    "အပ်ချုပ်ဆိုင်": ["ဒီဇိုင်းထုတ်ပေးခြင်း", "အမြန်ချုပ်", "သင်တန်းပေးခြင်း", "ပိတ်စရောင်းခြင်း"],
+                    "ဆေးဆိုင်": ["အိမ်အရောက်ပို့", "ဆေးခန်းတွဲလျက်", "ကျန်းမာရေးအကြံပေး", "ဆေးညွှန်းမလို"],
+                    "ကြံ့ခိုင်ရေး": ["နည်းပြရှိသည်", "ယောဂ", "ရေချိုးခန်း", "အားဖြည့်စာ"]
+                },
+                "ရွှေနှင့်ရတနာ": {
+                    "ရွှေဆိုင်": ["ရောင်းဝယ်ရေး", "အလဲအထပ်", "အာမခံချက်ပါခြင်း", "ပြင်ဆင်ခြင်း"],
+                    "အရောင်တင်/ပန်းထိမ်း": ["အရောင်တင်", "အထည်ဆန်းသွန်း", "ကျောက်စီခြင်း", "အမြန်ပြင်"]
+                },
+                "ဝန်ဆောင်မှု": {
+                    "ဘဏ်/ATM": ["ATM (၂၄ နာရီ)", "ငွေသွင်းစက်", "ကောင်တာဝန်ဆောင်မှု", "နိုင်ငံခြားငွေ"],
+                    "အိုင်တီနှင့်ပုံနှိပ်": ["မိတ္တူ/ပရင့်", "စာစီစာရိုက်", "ကွန်ပျူတာပြင်", "ပလတ်စတစ်လောင်း"],
+                    "ပြုပြင်ထိန်းသိမ်းရေး": ["အဲကွန်းပြင်", "ရေခဲသေတ္တာပြင်", "လျှပ်စစ်ပြင်", "ရေပိုက်ပြင်"]
+                }
             }
         };
 
         const translations = {
             en: {
-                appTitle: "Ward Map Engine",
+                appTitle: "Kyaukmyaung Engine",
                 syncGps: "Sync My GPS",
                 labelName: "Shop Name",
-                labelCategory: "Main Category",
-                labelSubCategory: "Sub Category",
-                labelScale: "Scale",
-                labelDigital: "Digital Pay?",
-                labelTraffic: "Traffic",
-                labelRemark: "Remarks",
+                labelCategory: "Category",
+                labelSubCategory: "Sub Type",
+                labelServices: "Services Checklist",
+                labelHours: "Opening Hours",
+                labelPeak: "Peak Hours",
+                labelTarget: "Target Customer",
+                labelTraffic: "Traffic Level",
+                labelRemark: "Remarks / Features",
                 btnSave: "Save Record",
                 msgSuccess: "Data Saved Successfully!",
                 msgError: "Error: Could not save data",
-                scales: ["Micro (1-2 Staff)", "Small (3-5 Staff)", "Medium (5+ Staff)"],
-                digital: ["Yes (KPay/Wave/AYAPay/MMQR etc)", "No (Cash Only)"],
                 traffic: ["Low", "Medium", "High"]
             },
             mm: {
-                appTitle: "ရပ်ကွက်ဒေတာအင်ဂျင်",
+                appTitle: "ကျောက်မြောင်းဒေတာအင်ဂျင်",
                 syncGps: "တည်နေရာရယူရန်",
                 labelName: "ဆိုင်အမည်",
-                labelCategory: "အဓိကအမျိုးအစား",
-                labelSubCategory: "အသေးစိတ်အမျိုးအစား",
-                labelScale: "လုပ်ငန်းပမာဏ",
-                labelDigital: "ဒစ်ဂျစ်တယ်ပေးချေမှု",
+                labelCategory: "အဓိက",
+                labelSubCategory: "အမျိုးအစားခွဲ",
+                labelServices: "ရရှိနိုင်သော ဝန်ဆောင်မှုများ",
+                labelHours: "ဖွင့်ချိန်/ပိတ်ချိန်",
+                labelPeak: "လူစည်ကားချိန်",
+                labelTarget: "ဖောက်သည်အမျိုးအစား",
                 labelTraffic: "လူစည်ကားမှု",
-                labelRemark: "မှတ်ချက်",
+                labelRemark: "မှတ်ချက်/ထူးခြားချက်",
                 btnSave: "ဒေတာသိမ်းဆည်းမည်",
                 msgSuccess: "ဒေတာသိမ်းဆည်းမှု အောင်မြင်ပါသည်။",
                 msgError: "အမှားအယွင်းရှိနေပါသည်။",
-                scales: ["အသေးစား (၁-၂ ဦး)", "အလတ်စား (၃-၅ ဦး)", "အကြီးစား (၅ ဦးနှင့်အထက်)"],
-                digital: ["ရှိသည် (KPay/Wave/CB)", "မရှိပါ (ငွေသားသီးသန့်)"],
-                traffic: ["နည်းပါး", "အလယ်အလတ်", "စည်ကား"],
+                traffic: ["နည်းပါး", "အလယ်အလတ်", "စည်ကား"]
             }
         };
 
-        let currentLang = localStorage.getItem('app_lang') || 'en';
+        let currentLang = localStorage.getItem('app_lang') || 'mm';
+        let selectedServices = new Set();
 
         function updateUI() {
             const t = translations[currentLang];
@@ -205,75 +245,67 @@
                 el.innerText = t[key];
             });
 
-            // Populate Main Category
             const mainCats = Object.keys(categoryData[currentLang]);
             const mainSelect = document.getElementById('main-category-select');
-            const prevMain = mainSelect.value;
             mainSelect.innerHTML = mainCats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-            if(prevMain && mainCats.includes(prevMain)) mainSelect.value = prevMain;
 
             updateSubCategories();
-            updateSelect('scale-select', t.scales);
-            updateSelect('digital-select', t.digital);
             updateSelect('traffic-select', t.traffic);
-            
             lucide.createIcons();
         }
 
         function updateSubCategories() {
             const mainCat = document.getElementById('main-category-select').value;
             const subSelect = document.getElementById('sub-category-select');
-            const subWrapper = document.getElementById('sub-category-wrapper');
+            const subs = Object.keys(categoryData[currentLang][mainCat] || {});
             
-            const subs = categoryData[currentLang][mainCat] || [];
-            
-            if (subs.length > 0) {
-                subWrapper.classList.remove('hidden-el');
-                subSelect.innerHTML = subs.map(s => `<option value="${s}">${s}</option>`).join('');
-            } else {
-                subWrapper.classList.add('hidden-el');
-            }
-
-            checkOtherVisibility();
+            subSelect.innerHTML = subs.map(s => `<option value="${s}">${s}</option>`).join('');
+            updateServiceChecklist();
         }
 
-        function checkOtherVisibility() {
-            const mainSelect = document.getElementById('main-category-select');
-            const subSelect = document.getElementById('sub-category-select');
-            const mainOther = document.getElementById('other-main-input');
-            const subOther = document.getElementById('other-sub-input');
+        function updateServiceChecklist() {
+            const mainCat = document.getElementById('main-category-select').value;
+            const subCat = document.getElementById('sub-category-select').value;
+            const grid = document.getElementById('services-grid');
+            
+            const services = categoryData[currentLang][mainCat][subCat] || [];
+            selectedServices.clear();
+            
+            grid.innerHTML = services.map(s => `
+                <div class="service-chip px-3 py-1 rounded-full border border-slate-300 text-xs font-medium bg-white text-slate-600" 
+                     onclick="toggleService(this, '${s}')">
+                    ${s}
+                </div>
+            `).join('');
+        }
 
-            if (mainSelect.value === "Other" || mainSelect.value === "အခြား") {
-                mainOther.classList.remove('hidden-el');
+        function toggleService(el, service) {
+            if (selectedServices.has(service)) {
+                selectedServices.delete(service);
+                el.classList.remove('active');
             } else {
-                mainOther.classList.add('hidden-el');
+                selectedServices.add(service);
+                el.classList.add('active');
             }
-
-            if (subSelect.value === "Other" || subSelect.value === "အခြား") {
-                subOther.classList.remove('hidden-el');
-            } else {
-                subOther.classList.add('hidden-el');
-            }
+            document.getElementById('final-services').value = Array.from(selectedServices).join(', ');
         }
 
         function updateSelect(id, options) {
             const select = document.getElementById(id);
-            const currentVal = select.value;
             select.innerHTML = options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
-            if (currentVal) select.value = currentVal;
         }
 
+        // Listeners
         document.getElementById('main-category-select').addEventListener('change', updateSubCategories);
-        document.getElementById('sub-category-select').addEventListener('change', checkOtherVisibility);
-
+        document.getElementById('sub-category-select').addEventListener('change', updateServiceChecklist);
         document.getElementById('lang-switch').addEventListener('change', (e) => {
             currentLang = e.target.value;
             localStorage.setItem('app_lang', currentLang);
             updateUI();
         });
 
-        // Map Setup
-        let map = L.map('map').setView([16.8409, 96.1735], 13);
+        // Map
+        let map = L.map('map').setView([16.7983, 96.1738], 15); // Centered near Kyaukmyaung
         let marker;
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
@@ -305,18 +337,13 @@
             );
         }
 
-        // Submission Logic
+        // Submission
         const form = document.getElementById('data-form');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const mainSelect = document.getElementById('main-category-select');
-            const subSelect = document.getElementById('sub-category-select');
-            const mainOther = document.getElementById('other-main-input');
-            const subOther = document.getElementById('other-sub-input');
-
-            document.getElementById('final-category').value = (mainSelect.value === "Other" || mainSelect.value === "အခြား") ? mainOther.value : mainSelect.value;
-            document.getElementById('final-subcategory').value = (subSelect.value === "Other" || subSelect.value === "အခြား") ? subOther.value : subSelect.value;
+            document.getElementById('final-category').value = document.getElementById('main-category-select').value;
+            document.getElementById('final-subcategory').value = document.getElementById('sub-category-select').value;
 
             const btn = document.getElementById('submit-btn');
             btn.disabled = true;
@@ -327,6 +354,7 @@
             data.timestamp = new Date().toLocaleString();
 
             try {
+                // Using GET with query params as common for simple Google Apps Script setups
                 await fetch(`${WEB_APP_URL}?${new URLSearchParams(data).toString()}`, { method: 'GET', mode: 'no-cors' });
                 
                 const msgBox = document.getElementById('message-box');
@@ -334,8 +362,7 @@
                 msgBox.className = "p-4 rounded-xl text-center bg-emerald-100 text-emerald-700 block shadow-sm";
                 
                 form.reset();
-                mainOther.classList.add('hidden-el');
-                subOther.classList.add('hidden-el');
+                selectedServices.clear();
                 setTimeout(() => msgBox.className = "hidden-el", 4000);
                 refreshGPS();
             } catch (err) {
