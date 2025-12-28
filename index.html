@@ -54,6 +54,8 @@
             <input type="hidden" name="lng" id="inp-lng">
             <input type="hidden" name="digital_pay" id="inp-pay">
             <input type="hidden" name="delivery_apps" id="inp-delivery">
+            <!-- New Hidden Language Input -->
+            <input type="hidden" name="lang_used" id="inp-lang-used" value="mm">
 
             <!-- Core Business Info -->
             <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-4">
@@ -162,7 +164,7 @@
             <div class="p-6 bg-white border-t flex gap-3">
                 <button onclick="closeModal()" class="flex-1 py-4 text-slate-500 font-bold text-sm border border-slate-200 rounded-2xl">Edit</button>
                 <button id="submit-final" onclick="performSubmit()" class="flex-[2] py-4 bg-emerald-600 text-white font-bold text-sm rounded-2xl shadow-lg flex items-center justify-center gap-2 active:bg-emerald-700">
-                    <i data-lucide="cloud-upload"></i> Confirm & Save
+                    <i data-lucide="cloud-upload"></i> <span id="btn-text">Confirm & Save</span>
                 </button>
             </div>
         </div>
@@ -175,7 +177,7 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyNpcgqSqW_PrcNzbXbMXOkMNByxcP3Aal1WGAMIwdB3ho-utzp4xghrHuhMLqtxCkXcw/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbyQGdDzd_mUtoLxIrTszLA6LgUqgEuJ0E3kPoEYJ3bAbuqmfsrFVW_OpKlyiMsYT84MsA/exec";
         
         const categories = {
             en: {
@@ -188,7 +190,7 @@
             mm: {
                 "စားသောက်ကုန်": ["စားသောက်ဆိုင်", "ကော်ဖီ/လက်ဖက်ရည်ဆိုင်", "လမ်းဘေးဆိုင်", "ဘား/KTV", "မုန့်တိုက်", "အခြား"],
                 "အရောင်းဆိုင်": ["ကုန်စုံဆိုင်", "ဖုန်း/အီလက်ထရောနစ်", "အဝတ်အထည်", "ဆေးဆိုင်", "လက်ကားဆိုင်", "အလှကုန်ဆိုင်", "အခြား"],
-                "ဝန်ဆောင်မှု": ["ဆံပင်ညှပ်/အလှပြင်", "အဝတ်လျှော်", "ကား/ဆိုင်ကယ်ပြင်", "မိတ္တူ/ပုံနှိပ်", "အပ်ချုပ်ဆိုင်", "ဆေးခန်း", "ပို့ဆောင်ရေး", "အခြား"],
+                "ဝန်ဆောင်မှု": ["ဆံပင်ညပ်/အလှပြင်", "အဝတ်လျှော်", "ကား/ဆိုင်ကယ်ပြင်", "မိတ္တူ/ပုံနှိပ်", "အပ်ချုပ်ဆိုင်", "ဆေးခန်း", "ပို့ဆောင်ရေး", "အခြား"],
                 "ရွှေနှင့်ငွေကြေး": ["ရွှေဆိုင်", "ပန်းထိမ်လုပ်ငန်း", "ငွေလဲလုပ်ငန်း", "မိုဘိုင်းငွေလွှဲကိုယ်စားလှယ်", "အခြား"],
                 "အခြားလုပ်ငန်း": ["ကျူရှင်/ပညာရေး", "ခရီးသွား/လက်မှတ်", "အင်တာနက်ကဖေး", "ဆောက်လုပ်ရေးပစ္စည်း", "အခြား"]
             }
@@ -207,7 +209,7 @@
                 }
             },
             mm: {
-                payment: ["MMQR", "Kpay", "AYA Pay", "WaveMoney", "True Money", "ငွေသားသီးသန့်"],
+                payment: ["MMQR", "Kpay", "AYA Pay", "WaveMoney", "True Money", "လက်ငင်းသီးသန့်"],
                 delivery: ["FoodPanda", "Grab", "Door2Door", "ကိုယ်ပိုင်ပို့ဆောင်ရေး", "မရှိပါ"],
                 labels: {
                     syncGps: "တည်နေရာယူမည်",
@@ -226,6 +228,8 @@
 
         function updateUI() {
             const langData = config[currentLang];
+            document.getElementById('inp-lang-used').value = currentLang;
+            
             document.querySelectorAll('[data-lang]').forEach(el => {
                 el.innerText = langData.labels[el.getAttribute('data-lang')];
             });
@@ -265,9 +269,9 @@
         }
 
         function checkOtherStatus() {
-            const main = document.getElementById('cat-main').value;
             const sub = document.getElementById('cat-sub').value;
             const box = document.getElementById('other-cat-box');
+            // Support both English and Burmese check
             if (sub === "Other" || sub === "အခြား") {
                 box.classList.remove('hidden-el');
             } else {
@@ -312,8 +316,9 @@
             const list = document.getElementById('review-list');
             
             const subValue = data.get('category_sub');
+            const otherVal = data.get('other_category');
             const finalType = (subValue === "Other" || subValue === "အခြား") ? 
-                            `Other: ${data.get('other_category')}` : 
+                            `Other: ${otherVal || 'Not specified'}` : 
                             `${data.get('category_main')} > ${subValue}`;
 
             const summary = [
@@ -334,8 +339,8 @@
             document.getElementById('modal').classList.remove('hidden-el');
             document.body.classList.add('modal-open');
 
-            const lat = parseFloat(data.get('lat'));
-            const lng = parseFloat(data.get('lng'));
+            const lat = parseFloat(data.get('lat')) || 16.8409;
+            const lng = parseFloat(data.get('lng')) || 96.1735;
             setTimeout(() => {
                 if (!reviewMap) {
                     reviewMap = L.map('review-map', { zoomControl: false, attributionControl: false }).setView([lat, lng], 17);
@@ -356,27 +361,42 @@
 
         async function performSubmit() {
             const btn = document.getElementById('submit-final');
+            const btnText = document.getElementById('btn-text');
+            
             btn.disabled = true;
-            btn.innerHTML = `<div class="loader mx-auto"></div>`;
+            btnText.innerHTML = `<div class="loader mx-auto"></div>`;
 
-            const data = Object.fromEntries(new FormData(document.getElementById('collector-form')).entries());
-            data.timestamp = new Date().toISOString();
+            const formEl = document.getElementById('collector-form');
+            const data = Object.fromEntries(new FormData(formEl).entries());
+            data.timestamp = new Date().toLocaleString();
+
+            const queryParams = new URLSearchParams(data).toString();
 
             try {
-                await fetch(`${API_URL}?${new URLSearchParams(data).toString()}`, { method: 'GET', mode: 'no-cors' });
+                // Using GET for Apps Script compatibility (bypassing CORS issues)
+                await fetch(`${API_URL}?${queryParams}`, { 
+                    method: 'GET', 
+                    mode: 'no-cors',
+                    cache: 'no-cache'
+                });
+                
+                // Cleanup and success feedback
                 closeModal();
                 document.getElementById('toast').classList.remove('hidden-el');
-                document.getElementById('collector-form').reset();
+                formEl.reset();
                 selectedPay.clear();
                 selectedDelivery.clear();
+                
                 setTimeout(() => {
                     document.getElementById('toast').classList.add('hidden-el');
                     updateUI();
                 }, 3000);
             } catch (e) {
-                alert("Submission error. Verify your internet.");
+                console.error("Submission error:", e);
+                alert("Submission failed. Check your internet connection.");
+            } finally {
                 btn.disabled = false;
-                btn.innerText = "Confirm & Save";
+                btnText.innerText = "Confirm & Save";
             }
         }
 
