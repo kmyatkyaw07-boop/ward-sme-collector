@@ -16,9 +16,14 @@
         #map { height: 180px; width: 100%; border-radius: 1rem; z-index: 10; }
         .loader { border-top-color: #ffffff; animation: spinner 1s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .hidden-el { display: none; }
+        
+        /* Modal visibility control */
+        .hidden-el { display: none !important; }
         .service-chip.active { background-color: #312e81; color: white; border-color: #312e81; }
-        .modal-overlay { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        .modal-overlay { background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
+        
+        /* Prevent body scroll when modal is open */
+        body.modal-open { overflow: hidden; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-20 touch-manipulation">
@@ -26,11 +31,11 @@
     <header class="bg-indigo-900 text-white p-4 shadow-lg sticky top-0 z-[1000]">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <h1 class="text-lg font-bold flex items-center gap-2">
-                <i data-lucide="shield-check"></i> <span data-lang="appTitle">Collector Pro</span>
+                <i data-lucide="map-pin"></i> <span data-lang="appTitle">Collector Pro</span>
             </h1>
             <select id="lang-switch" class="bg-indigo-800 text-xs border-none rounded px-2 py-1 outline-none text-white">
                 <option value="en">English</option>
-                <option value="mm">မြန်မာ</option>
+                <option value="mm" selected>မြန်မာ</option>
             </select>
         </div>
     </header>
@@ -40,14 +45,14 @@
         <!-- Map Section -->
         <section class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
             <div id="map"></div>
-            <button type="button" onclick="refreshGPS()" class="w-full py-2 text-indigo-700 text-[10px] font-bold uppercase flex items-center justify-center gap-2 hover:bg-indigo-50 border-t">
-                <i data-lucide="locate-fixed" class="w-3 h-3"></i> <span data-lang="syncGps">Sync GPS</span>
+            <button type="button" onclick="refreshGPS()" class="w-full py-3 text-indigo-700 text-xs font-bold uppercase flex items-center justify-center gap-2 hover:bg-indigo-50 border-t">
+                <i data-lucide="locate-fixed" class="w-4 h-4"></i> <span data-lang="syncGps">Sync GPS</span>
             </button>
         </section>
 
         <!-- Form Section -->
         <section class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6">
-            <form id="data-form" class="space-y-4">
+            <form id="data-form" class="space-y-4" onsubmit="event.preventDefault();">
                 <input type="hidden" name="lat" id="form-lat">
                 <input type="hidden" name="long" id="form-long">
                 <input type="hidden" name="services" id="final-services">
@@ -56,7 +61,7 @@
                 <div class="space-y-4">
                     <div>
                         <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1" data-lang="labelName">Shop Name</label>
-                        <input type="text" name="name" id="shop-name-input" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500">
+                        <input type="text" name="name" id="shop-name-input" required placeholder="..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
@@ -74,9 +79,9 @@
                     <div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
                         <label class="text-[11px] font-bold text-indigo-700 uppercase block mb-2" data-lang="labelTimeRange">Business Hours</label>
                         <div class="flex items-center gap-2">
-                            <input type="time" id="time-from" value="09:00" class="flex-1 p-2 rounded-lg border bg-white text-sm outline-none">
-                            <span class="text-slate-400 font-bold">To</span>
-                            <input type="time" id="time-to" value="21:00" class="flex-1 p-2 rounded-lg border bg-white text-sm outline-none">
+                            <input type="time" id="time-from" value="09:00" class="flex-1 p-2 rounded-lg border bg-white text-sm outline-none focus:border-indigo-500">
+                            <span class="text-slate-400 font-bold">~</span>
+                            <input type="time" id="time-to" value="21:00" class="flex-1 p-2 rounded-lg border bg-white text-sm outline-none focus:border-indigo-500">
                         </div>
                     </div>
 
@@ -97,34 +102,38 @@
                     </div>
                 </div>
 
-                <button type="button" onclick="showReviewModal()" class="w-full bg-indigo-900 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
-                    <i data-lucide="eye" class="w-5 h-5"></i> <span data-lang="btnReview">Review & Save</span>
+                <button type="button" onclick="showReviewModal()" class="w-full bg-indigo-900 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 mt-4">
+                    <i data-lucide="save" class="w-5 h-5"></i> <span data-lang="btnReview">Record & Review</span>
                 </button>
             </form>
         </section>
     </main>
 
-    <!-- Review Modal -->
-    <div id="review-modal" class="hidden-el fixed inset-0 z-[2000] modal-overlay flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div class="bg-indigo-900 p-4 text-white flex justify-between items-center">
-                <h3 class="font-bold flex items-center gap-2"><i data-lucide="clipboard-list"></i> Final Review</h3>
-                <button onclick="closeModal()"><i data-lucide="x"></i></button>
+    <!-- Final Review Modal (Hidden by default) -->
+    <div id="review-modal" class="hidden-el fixed inset-0 z-[2000] modal-overlay flex items-end sm:items-center justify-center">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col animate-in slide-in-from-bottom duration-300">
+            <div class="bg-indigo-900 p-5 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg flex items-center gap-2"><i data-lucide="clipboard-check"></i> Final Review</h3>
+                <button onclick="closeModal()" class="p-1 hover:bg-white/10 rounded-full"><i data-lucide="x"></i></button>
             </div>
-            <div id="review-content" class="p-6 overflow-y-auto space-y-3 text-sm">
-                <!-- Review data injected here -->
+            
+            <div id="review-content" class="p-6 overflow-y-auto space-y-4 text-sm bg-slate-50">
+                <!-- Data will be injected here -->
             </div>
-            <div class="p-4 bg-slate-50 border-t flex gap-3">
-                <button onclick="closeModal()" class="flex-1 py-3 border border-slate-300 rounded-xl font-bold text-slate-600">Edit</button>
-                <button id="final-submit-btn" onclick="submitData()" class="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2">
-                    <i data-lucide="send" class="w-4 h-4"></i> Confirm & Send
+
+            <div class="p-5 bg-white border-t flex gap-3">
+                <button onclick="closeModal()" class="flex-1 py-4 border border-slate-300 rounded-xl font-bold text-slate-600 active:bg-slate-100">
+                    Edit Data
+                </button>
+                <button id="final-submit-btn" onclick="submitData()" class="flex-[1.5] py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 active:bg-emerald-700">
+                    <i data-lucide="send" class="w-5 h-5"></i> Confirm & Send
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Success Feedback -->
-    <div id="success-toast" class="hidden-el fixed bottom-10 left-1/2 -translate-x-1/2 z-[3000] bg-emerald-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 font-bold animate-bounce">
+    <div id="success-toast" class="hidden-el fixed bottom-24 left-1/2 -translate-x-1/2 z-[3000] bg-emerald-600 text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-2 font-bold animate-bounce">
         <i data-lucide="check-circle"></i> Data Sent Successfully!
     </div>
 
@@ -156,7 +165,7 @@
                     "လမ်းဘေးဆိုင်": ["ပါဆယ်သီးသန့်", "နံနက်ပိုင်းဖွင့်", "ညပိုင်းဖွင့်", "ထိုင်စားရနိုင်သည်"]
                 },
                 "ကျန်းမာရေးနှင့်အလှအပ": {
-                    "အလှပြင်ဆိုင်": ["ဆံပင်ညှပ်", "လက်သည်းခြေသည်း", "မျက်နှာပေါင်းတင်", "အနှိပ်/စပါး"],
+                    "အလှပြင်ဆိုင်": ["ဆံပင်ညပ်", "လက်သည်းခြေသည်း", "မျက်နှာပေါင်းတင်", "အနှိပ်/စပါး"],
                     "အပ်ချုပ်ဆိုင်": ["ဒီဇိုင်းထုတ်ပေးခြင်း", "အမြန်ချုပ်", "သင်တန်းပေးခြင်း", "ပိတ်စရောင်းခြင်း"],
                     "ဆေးဆိုင်": ["အိမ်အရောက်ပို့", "ဆေးခန်းတွဲလျက်", "ကျန်းမာရေးအကြံပေး", "ဆေးညွှန်းမလို"]
                 },
@@ -170,7 +179,7 @@
         const translations = {
             en: {
                 appTitle: "Collector Pro",
-                syncGps: "Sync My GPS",
+                syncGps: "Update GPS Location",
                 labelName: "Shop Name",
                 labelCategory: "Category",
                 labelSubCategory: "Sub Type",
@@ -178,15 +187,15 @@
                 labelTimeRange: "Business Hours",
                 labelPeak: "Peak Time",
                 labelTraffic: "Traffic",
-                btnReview: "Review & Save",
+                btnReview: "Record & Review",
                 peak: ["Morning", "Afternoon", "Evening"],
                 traffic: ["Low", "Medium", "High"]
             },
             mm: {
                 appTitle: "ကောက်ယူရေး Pro",
-                syncGps: "တည်နေရာရယူရန်",
+                syncGps: "တည်နေရာ ပြန်ယူရန်",
                 labelName: "ဆိုင်အမည်",
-                labelCategory: "အဓိက",
+                labelCategory: "အဓိကအမျိုးအစား",
                 labelSubCategory: "အမျိုးအစားခွဲ",
                 labelServices: "ဝန်ဆောင်မှုများ",
                 labelTimeRange: "ဖွင့်ချိန်/ပိတ်ချိန်",
@@ -234,9 +243,10 @@
             const services = categoryData[currentLang][mainCat][subCat] || [];
             selectedServices.clear();
             grid.innerHTML = services.map(s => `
-                <div class="service-chip px-3 py-1 rounded-full border border-slate-300 text-xs font-medium bg-white text-slate-600 cursor-pointer transition-all" 
+                <div class="service-chip px-3 py-1.5 rounded-full border border-slate-300 text-xs font-medium bg-white text-slate-600 cursor-pointer transition-all active:scale-90" 
                      onclick="toggleService(this, '${s}')">${s}</div>
             `).join('');
+            document.getElementById('final-services').value = "";
         }
 
         function toggleService(el, service) {
@@ -285,8 +295,15 @@
         }
 
         function showReviewModal() {
-            const name = document.getElementById('shop-name-input').value;
-            if (!name) return alert("Please enter Shop Name");
+            const nameInput = document.getElementById('shop-name-input');
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                nameInput.classList.add('border-red-500');
+                nameInput.focus();
+                return;
+            }
+            nameInput.classList.remove('border-red-500');
 
             const from = document.getElementById('time-from').value;
             const to = document.getElementById('time-to').value;
@@ -294,59 +311,62 @@
             document.getElementById('final-hours').value = hoursStr;
 
             const reviewContent = document.getElementById('review-content');
-            const data = {
-                "Name": name,
-                "Category": document.getElementById('main-category-select').value,
-                "Sub Type": document.getElementById('sub-category-select').value,
-                "Hours": hoursStr,
-                "Services": document.getElementById('final-services').value || "None",
-                "Peak Time": document.getElementById('peak-select').value,
-                "Traffic": document.getElementById('traffic-select').value,
-                "GPS": `${document.getElementById('form-lat').value}, ${document.getElementById('form-long').value}`
-            };
+            const data = [
+                { label: "Shop Name", val: name },
+                { label: "Category", val: `${document.getElementById('main-category-select').value} (${document.getElementById('sub-category-select').value})` },
+                { label: "Opening Hours", val: hoursStr },
+                { label: "Services", val: document.getElementById('final-services').value || "None" },
+                { label: "Crowd Details", val: `${document.getElementById('peak-select').value} | Traffic: ${document.getElementById('traffic-select').value}` },
+                { label: "Location", val: `${document.getElementById('form-lat').value}, ${document.getElementById('form-long').value}` }
+            ];
 
-            reviewContent.innerHTML = Object.entries(data).map(([key, val]) => `
-                <div class="border-b pb-2">
-                    <span class="text-[10px] text-slate-400 font-bold uppercase block">${key}</span>
-                    <span class="text-slate-700 font-medium">${val}</span>
+            reviewContent.innerHTML = data.map(item => `
+                <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                    <span class="text-[10px] text-indigo-400 font-bold uppercase block mb-1">${item.label}</span>
+                    <span class="text-slate-800 font-bold text-sm">${item.val}</span>
                 </div>
             `).join('');
 
             document.getElementById('review-modal').classList.remove('hidden-el');
+            document.body.classList.add('modal-open');
         }
 
         function closeModal() {
             document.getElementById('review-modal').classList.add('hidden-el');
+            document.body.classList.remove('modal-open');
         }
 
         async function submitData() {
             const btn = document.getElementById('final-submit-btn');
             btn.disabled = true;
-            btn.innerHTML = `<div class="loader w-4 h-4 border-2 rounded-full"></div> Sending...`;
+            btn.innerHTML = `<div class="loader w-5 h-5 border-2 rounded-full"></div> Sending...`;
 
-            const formData = new FormData(document.getElementById('data-form'));
+            const form = document.getElementById('data-form');
+            const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
             data.timestamp = new Date().toLocaleString();
 
             try {
+                // Send data using GET (JSONP style for no-cors)
                 await fetch(`${WEB_APP_URL}?${new URLSearchParams(data).toString()}`, { method: 'GET', mode: 'no-cors' });
                 
                 closeModal();
                 const toast = document.getElementById('success-toast');
                 toast.classList.remove('hidden-el');
-                document.getElementById('data-form').reset();
+                form.reset();
+                
                 setTimeout(() => {
                     toast.classList.add('hidden-el');
                     updateUI();
                 }, 3000);
             } catch (err) {
-                alert("Error sending data");
+                alert("Network error. Please try again.");
                 btn.disabled = false;
                 btn.innerHTML = "Confirm & Send";
             }
         }
 
-        // Init
+        // Event Listeners
         document.getElementById('main-category-select').addEventListener('change', updateSubCategories);
         document.getElementById('sub-category-select').addEventListener('change', updateServiceChecklist);
         document.getElementById('lang-switch').addEventListener('change', (e) => {
@@ -355,8 +375,11 @@
             updateUI();
         });
 
-        initMap();
-        updateUI();
+        // Initialize
+        window.onload = () => {
+            initMap();
+            updateUI();
+        };
     </script>
 </body>
 </html>
