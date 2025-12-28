@@ -390,7 +390,7 @@
             btnText.innerHTML = `<div class="loader mx-auto"></div>`;
             const formEl = document.getElementById('collector-form');
             const data = Object.fromEntries(new FormData(formEl).entries());
-            data.timestamp = new Date().toISOString();
+            data.timestamp = new Date().toLocaleString();
             const queryParams = new URLSearchParams(data).toString();
             try {
                 await fetch(`${API_URL}?${queryParams}`, { method: 'GET', mode: 'no-cors' });
